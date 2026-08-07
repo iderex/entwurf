@@ -1,0 +1,60 @@
+# The claim the contributor guide is built on, run rather than asserted: a fresh
+# clone on a machine with nothing installed beyond the pinned Node runtime reaches
+# a working environment with one command, and then runs the suite with a second.
+#
+# The machine is the container rather than the runner. A hosted runner image
+# carries dozens of toolchains, so a green run on one proves the commands work
+# where much is already installed, which is not what the guide claims. The
+# official Node image at the pinned version carries Node, corepack and git and
+# not this project's package manager, its dependencies or its browsers.
+#
+# The two steps below are the two commands from the guide, copied rather than
+# adapted. If they stop being the same commands, this workflow has stopped being
+# evidence for the guide.
+name: clean-machine
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Read-only: it installs into the container and runs tests, it never writes here.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  clean-machine:
+    name: clean-machine
+    runs-on: ubuntu-latest
+    # Pinned by digest as well as by tag, so the machine this ran on is the
+    # machine a later reader gets. The tag alone is a moving reference.
+    container: node:24.18.1-bookworm@sha256:87362b5d965240a1bc79f85cec63179d4ee853741413b274a4721f2742eb8393
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Say what this machine has before anything is installed
+        run: |
+          echo "node:  $(node --version)"
+          echo "npm:   $(npm --version)"
+          echo "pnpm:  $(command -v pnpm || echo 'not installed')"
+          echo "node_modules: $([ -d node_modules ] && echo present || echo absent)"
+
+      - name: The one command that reaches a working environment
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: corepack pnpm install --frozen-lockfile
+
+      - name: The one command that runs the suite
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: corepack pnpm test

@@ -34,7 +34,22 @@ It runs with no display, no GPU and no browser driver, and the hosted runner in
 `.github/workflows/unit-suite.yml` is a machine with none of those, so a green
 run there is the evidence rather than a claim made here.
 
-Issue #9 is where this guide is finished.
+Neither command is described here from memory. `.github/workflows/clean-machine.yml`
+runs both of them, in this order, inside the official Node image at the pinned
+version, which carries Node, corepack and git and not this project's package
+manager, its dependencies or its browsers. A fresh clone in that container is the
+closest thing to the machine the paragraph above describes, and if the two
+commands stop working there the check goes red.
+
+## The headless rule
+
+Everything in the unit suite runs with no display, no GPU and no elevation, and a
+test that needs any of those goes in the other suite. The rule is not about
+tidiness: a test that quietly needs hardware passes on the machine it was written
+on and reports green everywhere else without having run, so the suite would say
+less the more of them it collected. A test that needs elevation is not worked
+around here at all. It is skipped, and the skip is written into the issue rather
+than into a comment.
 
 ## The coverage floor
 
@@ -137,6 +152,12 @@ prints how many paths it could not classify.
 
 `check:types` runs the TypeScript compiler over `tools/` with no emit.
 
+`check:guide` refuses a sentence in this file that names a path which is neither
+tracked nor written by one of these runs, or a script `package.json` does not
+define. It reads backticked spans and `corepack pnpm run` commands, and it judges
+no other sentence here: whether anything else written in this guide is true is
+not something a run can decide.
+
 `check:locks` refuses a `pnpm-lock.yaml` that a resolve would rewrite. It hashes
 the file, resolves once, hashes again, and on a difference puts the original
 bytes back and prints the command that repairs it. It never repairs the file
@@ -146,10 +167,12 @@ refused as a failure to judge rather than passed as a clean tree.
 
 ## What no machine refuses
 
-These are rules, and nothing in this tree enforces any of them. Each is stated
-here in the sentence that states the rule, rather than in a footnote, because a
-rule a reader believes is enforced is worse than no rule: they stop looking for
-the failure it would have caught.
+Everything above this line is refused by something that runs, and the paragraph
+under each check says what it does not reach. Everything below it is a rule and
+nothing in this tree enforces any of them. Each is stated here in the sentence
+that states the rule, rather than in a footnote, because a rule a reader believes
+is enforced is worse than no rule: they stop looking for the failure it would have
+caught.
 
 Nothing refuses a claim made without the command that produced it, in an issue,
 in a pull request body, in a commit message or in a document, and that is the
@@ -177,6 +200,17 @@ The four `check:` scripts are not among them. Issue #8 is where a check gets a
 stable name and is put in front of the default branch, and until that lands,
 running them is something a person does before pushing. No ruleset requires any
 check today, so a red run blocks nothing on its own.
+
+## Where a change lands
+
+Work goes to the upstream project first, and what stays here is what upstream
+will not take or has no reason to take. So the first question about a change is
+not how to write it but where it belongs, and answering it wrongly costs either a
+patch upstream will refuse or a permanent maintenance burden here that somebody
+else would have carried. `docs/decisions/0002-upstream-relationship.md` is where
+that position is argued and where the test for which side a change falls on is
+written; it is not restated here, because two copies of a test drift and the copy
+a contributor reads first would be this one.
 
 ## The upstream revision
 
