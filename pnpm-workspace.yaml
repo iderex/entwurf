@@ -1,0 +1,14 @@
+# The Node version in package.json engines is an exact pin rather than a floor.
+# engineStrict is what makes pnpm refuse a mismatch instead of printing a warning
+# and carrying on, and it is here rather than in .npmrc because pnpm reads its own
+# settings from this file. A measurement produced under a different runtime than
+# the one the tree names is not the measurement the tree claims.
+engineStrict: true
+
+# Without this, pnpm resolves and installs before running any script, which
+# rewrites pnpm-lock.yaml on the way. The lock-file drift check would then always
+# run against a lock file that had just been repaired for it, and would report a
+# clean tree in exactly the case it exists to refuse. Measured: with the default
+# in force, `pnpm run check:locks` against a package.json naming vitest 4.1.9 and
+# a lock file naming 4.1.10 printed "the lock file is unmoved" and exited 0.
+verifyDepsBeforeRun: false

@@ -24,6 +24,32 @@ A later reader running them will get a different revision and may get different
 versions. Where a version below moves, this record is amended rather than
 silently outgrown.
 
+**Amended by issue #3. The two lines above name a revision the versions below do
+not come from, and the revision the versions do come from is a different branch.**
+The original statement is left standing rather than corrected in place, because
+what it got wrong is the interesting part. `main` is not the upstream default
+branch:
+
+    gh api repos/penpot/penpot --jq .default_branch
+    develop
+
+The version readings further down were made with `gh api .../contents/...` and no
+`ref` parameter, which resolves to the default branch, so they came from
+`develop` and not from the revision quoted above. The two trees disagree about
+one of the versions this record then pins:
+
+    gh api "repos/penpot/penpot/contents/.nvmrc?ref=d835baefecb13a4abf273e02ccfcefc169306756" --jq .content | base64 -d
+    v24.18.0
+    gh api "repos/penpot/penpot/contents/.nvmrc?ref=b5bec4f983b5540a3ed7969121badf08a14f384e" --jq .content | base64 -d
+    v24.18.1
+
+`b5bec4f983b5540a3ed7969121badf08a14f384e` was the head of `develop` when issue
+#3 landed, and every version quoted below reproduces against it. That is the
+revision `upstream/pin.json` names, and it is the branch `upstream/README.md`
+argues for. Nothing else in this record moves: the versions it names were read
+correctly off the tree they were read off, and only the sentence saying which
+tree that was is wrong.
+
 ## The shape of the upstream tree
 
     gh api repos/penpot/penpot/languages
@@ -92,7 +118,32 @@ absence is a fetch rather than a reading of silence:
 
 Both were 404 on the revision above. So "the engine is Rust" is forced and "which
 Rust" is not, and the engine will compile against whatever toolchain the machine
-happens to have. That is a reproducibility hole in this project's measurements
+happens to have.
+
+**Amended by issue #3. The two 404s are real and the conclusion drawn from them
+is too wide.** A `rust-toolchain.toml` is absent, and a pinned Rust version is
+not: upstream's own development image names one, along with the Emscripten and
+JDK versions this record leaves to issue #3 further down.
+
+    gh api "repos/penpot/penpot/contents/docker/devenv/Dockerfile?ref=b5bec4f983b5540a3ed7969121badf08a14f384e" --jq .content | base64 -d | grep -n 'RUSTUP_VERSION=\|RUST_VERSION=\|EMSCRIPTEN_VERSION='
+    205:    RUSTUP_VERSION=1.28.2 \
+    206:    RUST_VERSION=1.91.0 \
+    207:    EMSCRIPTEN_VERSION=4.0.6
+
+So the sentence above holds for a build run outside that image and not for one
+run inside it, which is where upstream builds the engine. What issue #3 pins is
+therefore not a version of this repository's own choosing but the one upstream
+already builds with, recorded in `tools/toolchains.json` with the command above
+beside it. The reproducibility hole named next is narrower than this record said:
+it is the gap between a machine that uses the development image and one that does
+not, rather than an absence of any pin at all.
+
+The first reading was made from the nearest file to hand, `rust-toolchain.toml`,
+which is the conventional place and was empty of an answer. The answer was one
+directory further out, in the file that builds the toolchain rather than the one
+that declares it.
+
+That is a reproducibility hole in this project's measurements
 rather than in upstream's builds, because a number produced by one compiler and
 compared against a number produced by another is not a comparison. Issue #3 is
 where this repository pins a Rust toolchain of its own for the builds it measures,

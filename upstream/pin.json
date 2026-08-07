@@ -1,0 +1,8 @@
+{
+  "repository": "penpot/penpot",
+  "branch": "develop",
+  "revision": "b5bec4f983b5540a3ed7969121badf08a14f384e",
+  "committed": "2026-08-07T12:20:24Z",
+  "producedBy": "gh api repos/penpot/penpot/commits/develop --jq '.sha + \" \" + .commit.committer.date'",
+  "defaultBranchProducedBy": "gh api repos/penpot/penpot --jq .default_branch"
+}
