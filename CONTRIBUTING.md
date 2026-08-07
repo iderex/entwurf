@@ -26,9 +26,56 @@ looks like this, and it names the version it wanted:
 install may rewrite `pnpm-lock.yaml` in passing, and the versions a measurement
 was produced under stop being the versions the tree names.
 
-This section does not yet carry the command that runs the test suite, because no
-suite exists yet. Issue #5 is where it lands, and issue #9 is where this guide is
-finished.
+Then the suite:
+
+    corepack pnpm test
+
+It runs with no display, no GPU and no browser driver, and the hosted runner in
+`.github/workflows/unit-suite.yml` is a machine with none of those, so a green
+run there is the evidence rather than a claim made here.
+
+Issue #9 is where this guide is finished.
+
+## The coverage floor
+
+The floor is lines 95%, functions 95%, branches 90%, statements 95%, and the run
+fails below it. The command that produces the number is the suite command above,
+which prints:
+
+    Statements   : 100% ( 98/98 )
+    Branches     : 100% ( 69/69 )
+    Functions    : 100% ( 12/12 )
+    Lines        : 100% ( 91/91 )
+
+The floor is below the measurement on purpose. A floor set at what the suite
+happens to reach today turns every unrelated change into a coverage argument, and
+one far below it stops catching anything.
+
+What the number is over is printed by the run before the first test, and it is
+not the whole tree. The pinned upstream checkout is excluded, because measuring
+it would report somebody else's tree as this project's coverage. The runners
+under `tools/src/` are excluded too: they read files, spawn a resolve and set an
+exit status, and the decisions were moved out of them into `tools/src/checks/` so
+that the suite could reach them. Nothing proves those runners, and the exclusion
+is printed on every run rather than left to be discovered.
+
+The per-file numbers are written to `coverage/coverage-summary.json` by the same
+run. The per-file table the `text` reporter would print is not used, because it
+renders here with a header and no rows, and a table showing no files reads as a
+run that measured none.
+
+## Which suite a test belongs in
+
+A test that needs a browser, a display or a GPU does not belong in the unit
+suite, and the boundary is held by the suite rather than by review: a unit test
+that imports a browser driver is refused when the file is loaded, before any test
+body runs.
+
+    Error: tests\unit\reaches-a-browser.test.ts imports @playwright/test, which drives a browser.
+
+That refusal reaches every import the bundler resolves, static or dynamic. It
+does not reach a module pulled in at runtime through `node:module`, which never
+passes through it.
 
 ## The checks this tree runs today
 
@@ -85,10 +132,14 @@ a person re-running the command and not by a run.
 
 ## Checks that run on GitHub
 
-The workflows in `.github/workflows/` are what the server runs. The scripts above
-are not among them yet: issue #8 is where a check gets a stable name and is put in
-front of the default branch, and until that lands, running them is something a
-person does before pushing.
+The workflows in `.github/workflows/` are what the server runs. The unit suite is
+among them, under the name `unit-suite`, and the job id and the check name are
+the same string so that a rule naming either one keeps matching.
+
+The four `check:` scripts are not among them. Issue #8 is where a check gets a
+stable name and is put in front of the default branch, and until that lands,
+running them is something a person does before pushing. No ruleset requires any
+check today, so a red run blocks nothing on its own.
 
 ## The upstream revision
 

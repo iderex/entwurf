@@ -1,0 +1,59 @@
+# The headless unit suite. It runs on a hosted runner with no display, no GPU and
+# no browser driver installed, which is the machine the suite claims to run on, so
+# a green run here is the evidence for that claim rather than an assertion about
+# it.
+#
+# What it does not run: anything that needs a browser or a GPU. That suite is
+# separate by name, because a suite that silently skips when no GPU is present
+# reports green on a machine that measured nothing.
+name: unit-suite
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: [main]
+
+# Read-only: the suite reads the tree and runs tests, it never writes.
+permissions:
+  contents: read
+
+# Cancel a superseded run on the same ref; the suite is cheap and idempotent.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The job id and the check name are the same string on purpose. The check run
+  # takes its name from `name:` where one is set and from the job id otherwise, so
+  # keeping them identical means a rule naming either one keeps matching.
+  unit-suite:
+    name: unit-suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # No step pushes, so do not persist the token in .git/config.
+          persist-credentials: false
+
+      - name: Install the pinned Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          # Read from engines.node rather than written here, so the runtime the
+          # suite runs under cannot drift from the pin the tree carries.
+          node-version-file: package.json
+
+      - name: Reach a working environment
+        # The same one command the contributor guide gives. corepack downloads the
+        # pnpm named in packageManager and verifies its hash, so the package
+        # manager is pinned here too rather than taken from the runner image.
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: corepack pnpm install --frozen-lockfile
+
+      - name: Run the unit suite with coverage
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: corepack pnpm test
