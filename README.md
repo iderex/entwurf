@@ -38,4 +38,6 @@ documentation that answers the question an author actually has.
 [docs/plugins/](docs/plugins/) is where that is written for the person building
 one.
 
-See [NOTICE.md](NOTICE.md) for the intended-use notice.
+See [NOTICE.md](NOTICE.md) for the intended-use notice, and
+[docs/not-for.md](docs/not-for.md) for what this project declines to build and
+what it does not promise.
