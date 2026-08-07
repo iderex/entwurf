@@ -58,7 +58,9 @@ conditions, and the conditions are the only part this project controls.
 
 Where a count is published at all, it is published as an observation with its date
 and the command that produced it, next to the things this project does affect, for
-example how long it takes to get from a clone to a running plugin. Issue #55 is
-where that set of observations is defined. No milestone, issue or release note in
+example how long it takes to get from a clone to a running plugin.
+[../ecosystem/observations.md](../ecosystem/observations.md) is that set, and most
+of it is currently recorded as not measured rather than left out. No milestone,
+issue or release note in
 this repository is written against a plugin count, and that is a rule about how
 this project plans rather than a claim about how well it is doing.
