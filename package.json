@@ -8,16 +8,18 @@
     "pnpm": "11.20.0"
   },
   "scripts": {
-    "upstream:revision": "node tools/src/print-upstream-revision.ts",
-    "check:pins": "node tools/src/check-toolchain-pins.ts",
+    "check": "node tools/src/check-toolchain-pins.ts && node tools/src/check-languages.ts && tsc --noEmit --project tools/tsconfig.json && node tools/src/check-lockfile-drift.ts",
     "check:languages": "node tools/src/check-languages.ts",
     "check:locks": "node tools/src/check-lockfile-drift.ts",
+    "check:pins": "node tools/src/check-toolchain-pins.ts",
     "check:types": "tsc --noEmit --project tools/tsconfig.json",
-    "check": "node tools/src/check-toolchain-pins.ts && node tools/src/check-languages.ts && tsc --noEmit --project tools/tsconfig.json && node tools/src/check-lockfile-drift.ts"
+    "test": "vitest run --config tools/vitest.config.ts --coverage",
+    "upstream:revision": "node tools/src/print-upstream-revision.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
     "@types/node": "24.13.3",
+    "@vitest/coverage-v8": "4.1.10",
     "typescript": "6.0.3",
     "vitest": "4.1.10"
   }
