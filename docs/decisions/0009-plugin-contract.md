@@ -58,9 +58,9 @@ exactly the ones the promise protects.
 rational. Nothing else this project does on the ecosystem side matters if the code
 someone writes this year needs revisiting next year, and record 0001's whole
 argument for the plugin means is that an author should be able to compile against
-something. Issue #49 states the honest limit of what this project can do about
-ecosystem size, and removing every reason not to show up is the whole of it. An
-interface that drifts is a reason not to show up.
+something. `docs/plugins/README.md` states the honest limit of what this project
+can do about ecosystem size, and removing every reason not to show up is the whole
+of it. An interface that drifts is a reason not to show up.
 
 The contract is chosen. It is chosen knowing that this project cannot make the
 promise alone, which is what the section on the upstream relationship below is
