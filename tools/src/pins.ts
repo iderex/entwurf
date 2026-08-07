@@ -44,8 +44,8 @@ function readJson(path: string): unknown {
   }
 }
 
-export function loadUpstreamPin(): UpstreamPin {
-  const pin = readJson(join(repoRoot, "upstream", "pin.json")) as UpstreamPin;
+export function loadUpstreamPin(root: string = repoRoot): UpstreamPin {
+  const pin = readJson(join(root, "upstream", "pin.json")) as UpstreamPin;
   if (!/^[0-9a-f]{40}$/.test(pin.revision ?? "")) {
     throw new Error(
       `upstream/pin.json: revision must be a full 40-character commit identifier, found ${JSON.stringify(pin.revision)}`,
@@ -54,8 +54,8 @@ export function loadUpstreamPin(): UpstreamPin {
   return pin;
 }
 
-export function loadToolchains(): Toolchains {
-  const toolchains = readJson(join(repoRoot, "tools", "toolchains.json")) as Toolchains;
+export function loadToolchains(root: string = repoRoot): Toolchains {
+  const toolchains = readJson(join(root, "tools", "toolchains.json")) as Toolchains;
   if (!Array.isArray(toolchains.pins) || toolchains.pins.length === 0) {
     throw new Error("tools/toolchains.json: pins must be a non-empty array");
   }
@@ -84,6 +84,6 @@ export function readField(root: unknown, field: string): string | undefined {
   return readField(value, tail);
 }
 
-export function loadPackageJson(): unknown {
-  return readJson(join(repoRoot, "package.json"));
+export function loadPackageJson(root: string = repoRoot): unknown {
+  return readJson(join(root, "package.json"));
 }
