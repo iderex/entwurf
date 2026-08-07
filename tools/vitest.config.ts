@@ -1,5 +1,4 @@
 import { defineConfig } from "vitest/config";
-import type { Plugin } from "vite";
 import { dirname, relative, resolve } from "node:path";
 import { coverageExclude, coverageFloor, coverageInclude } from "./src/coverage-scope.ts";
 
@@ -15,12 +14,12 @@ const browserDrivers = ["@playwright/test", "playwright", "playwright-core", "pu
 // load a file that reaches a driver. What it reaches: every import Vite resolves,
 // static or dynamic. What it does not reach: a module loaded at runtime through
 // node:module createRequire, which never passes through this plugin.
-function refuseBrowserDriversInUnitTests(): Plugin {
+function refuseBrowserDriversInUnitTests() {
   const unitTests = resolve(repoRoot, "tests", "unit");
   return {
     name: "refuse-browser-drivers-in-unit-tests",
     enforce: "pre",
-    resolveId(source, importer) {
+    resolveId(source: string, importer: string | undefined) {
       if (importer === undefined) return null;
       if (!resolve(importer).startsWith(unitTests)) return null;
       if (!browserDrivers.includes(source)) return null;
@@ -39,7 +38,10 @@ export default defineConfig({
     globalSetup: ["tests/announce-scope.ts"],
     coverage: {
       provider: "v8",
-      all: true,
+      // `include` on its own carries a file no test imported into the report,
+      // which is what the floor needs. `all` was set here and is not a key this
+      // runner has: the compiler found it once the config was put inside the
+      // typecheck, and it had been doing nothing.
       include: coverageInclude,
       exclude: coverageExclude.map(({ pattern }) => pattern),
       // text-summary prints the totals the floor is judged against, and

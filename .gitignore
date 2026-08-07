@@ -4,3 +4,5 @@ node_modules/
 # never vendored, so it must not become tracked source by accident.
 upstream/checkout/
 coverage/
+tests/hardware/results/
+test-results/

@@ -66,16 +66,53 @@ run that measured none.
 
 ## Which suite a test belongs in
 
-A test that needs a browser, a display or a GPU does not belong in the unit
-suite, and the boundary is held by the suite rather than by review: a unit test
-that imports a browser driver is refused when the file is loaded, before any test
-body runs.
+A test that needs a browser, a display or a GPU goes in `tests/hardware/` and
+runs under `test:needs-display-and-gpu`; everything else goes in `tests/unit/`
+and runs under `test`.
+
+The boundary is held by the suite rather than by review: a unit test that imports
+a browser driver is refused when the file is loaded, before any test body runs.
 
     Error: tests\unit\reaches-a-browser.test.ts imports @playwright/test, which drives a browser.
 
 That refusal reaches every import the bundler resolves, static or dynamic. It
 does not reach a module pulled in at runtime through `node:module`, which never
 passes through it.
+
+## The hardware-bound suite
+
+    corepack pnpm run test:needs-display-and-gpu
+
+The name says what it needs, and the name is the point. A suite called
+integration tests that quietly skips when no GPU is present reports green on a
+machine that measured nothing, and a green run that measured nothing is worse
+than a red one.
+
+It reads the machine before it runs anything, and refuses one that cannot do the
+work, naming what was missing:
+
+    machine GPU: none
+    MISSING  a GPU: the browser is rendering through ANGLE (Google, ... SwiftShader driver-5.0.0)
+    MISSING  webgl on the GPU: the browser reports it as unavailable_software
+    REFUSED  this machine cannot run the hardware-bound suite. Nothing was skipped and nothing was measured; this run is red rather than green so it cannot be quoted as a pass.
+
+Every run prints the machine it ran on, and says whether it examined the whole
+set or part of it:
+
+    examined the WHOLE hardware-bound set: 2 case(s), none skipped, no filter.
+    examined PART of the hardware-bound set: 1 of 1 case(s). This run may NOT be read as a full one.
+      partial because the command was narrowed by: --grep WebGL2
+
+Any argument you give the command narrows what runs, so any argument makes the
+run partial and it says so. The same lines, the machine and every case are
+written together to `tests/hardware/results/run.json`, so a number this suite
+produces leaves already carrying the machine it was produced on.
+
+Two things it does not establish. On Linux the display is read from `DISPLAY` and
+`WAYLAND_DISPLAY`; on Windows and macOS no environment variable answers the
+question and the run prints that it makes no claim about a display rather than
+counting one as present. And it does not run on GitHub: hosted runners have no
+GPU, so this suite would be refused there, correctly, on every run.
 
 ## The checks this tree runs today
 
