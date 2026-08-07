@@ -1,0 +1,118 @@
+{
+  "producedAgainst": {
+    "repository": "penpot/penpot",
+    "revision": "b5bec4f983b5540a3ed7969121badf08a14f384e"
+  },
+  "pins": [
+    {
+      "id": "node",
+      "kind": "runtime",
+      "version": "24.18.1",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/.nvmrc?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d",
+      "output": "v24.18.1",
+      "mirroredIn": { "file": "package.json", "field": "engines.node" }
+    },
+    {
+      "id": "pnpm",
+      "kind": "package manager",
+      "version": "11.20.0",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/plugins/package.json?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n '\"packageManager\"'",
+      "output": "6:  \"packageManager\": \"pnpm@11.20.0+sha512...\"",
+      "mirroredIn": { "file": "package.json", "field": "packageManager" }
+    },
+    {
+      "id": "typescript",
+      "kind": "compiler",
+      "version": "6.0.3",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/plugins/package.json?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n '\"typescript\"'",
+      "output": "73:    \"typescript\": \"6.0.3\",",
+      "mirroredIn": { "file": "package.json", "field": "devDependencies.typescript" }
+    },
+    {
+      "id": "vitest",
+      "kind": "test runner",
+      "version": "4.1.10",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/plugins/package.json?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n '\"vitest\"'",
+      "output": "79:    \"vitest\": \"4.1.10\",",
+      "mirroredIn": { "file": "package.json", "field": "devDependencies.vitest" }
+    },
+    {
+      "id": "playwright",
+      "kind": "browser driver",
+      "version": "1.62.1",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/package.json?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n 'playwright'",
+      "output": "22:    \"playwright\": \"1.62.1\"",
+      "mirroredIn": { "file": "package.json", "field": "devDependencies.@playwright/test" }
+    },
+    {
+      "id": "clojure",
+      "kind": "language",
+      "version": "1.12.5",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/backend/deps.edn?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n 'org.clojure/clojure'",
+      "output": "6:  org.clojure/clojure {:mvn/version \"1.12.5\"}",
+      "mirroredIn": null
+    },
+    {
+      "id": "clojure-cli",
+      "kind": "build tool",
+      "version": "1.12.5.1664",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/docker/devenv/Dockerfile?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n 'CLOJURE_VERSION='",
+      "output": "163:ENV CLOJURE_VERSION=1.12.5.1664",
+      "mirroredIn": null
+    },
+    {
+      "id": "jdk",
+      "kind": "runtime",
+      "version": "26.0.2",
+      "distribution": "Azul Zulu 26.32.13-ca",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/docker/devenv/Dockerfile?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n 'zulu.*jdk'",
+      "output": "170,174: zulu26.32.13-ca-jdk26.0.2-linux_{aarch64,x64}.tar.gz",
+      "mirroredIn": null
+    },
+    {
+      "id": "rust",
+      "kind": "compiler",
+      "version": "1.91.0",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/docker/devenv/Dockerfile?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n 'RUST_VERSION='",
+      "output": "206:    RUST_VERSION=1.91.0 \\",
+      "mirroredIn": null
+    },
+    {
+      "id": "rustup",
+      "kind": "toolchain installer",
+      "version": "1.28.2",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/docker/devenv/Dockerfile?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n 'RUSTUP_VERSION='",
+      "output": "205:    RUSTUP_VERSION=1.28.2 \\",
+      "mirroredIn": null
+    },
+    {
+      "id": "emscripten",
+      "kind": "compiler",
+      "version": "4.0.6",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/docker/devenv/Dockerfile?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n 'EMSCRIPTEN_VERSION='",
+      "output": "207:    EMSCRIPTEN_VERSION=4.0.6",
+      "mirroredIn": null
+    },
+    {
+      "id": "skia",
+      "kind": "library",
+      "version": "0.93.1",
+      "decidedBy": "upstream",
+      "command": "gh api \"repos/penpot/penpot/contents/render-wasm/Cargo.toml?ref=b5bec4f983b5540a3ed7969121badf08a14f384e\" --jq .content | base64 -d | grep -n 'skia-safe'",
+      "output": "29:skia-safe = { version = \"0.93.1\", default-features = false, features = [",
+      "mirroredIn": null
+    }
+  ],
+  "languages": ["clojure", "clojurescript", "rust", "typescript"]
+}

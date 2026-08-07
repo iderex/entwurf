@@ -1,0 +1,5 @@
+node_modules/
+
+# The upstream checkout the pin in upstream/pin.json resolves to. It is fetched,
+# never vendored, so it must not become tracked source by accident.
+upstream/checkout/
