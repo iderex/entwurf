@@ -22,6 +22,19 @@ export const coverageExclude: { pattern: string; reason: string }[] = [
     reason: "runners, same as above",
   },
   {
+    pattern: "tools/src/run-*.ts",
+    reason: "runners, same as above",
+  },
+  {
+    pattern: "tools/src/hardware/probe.ts",
+    reason: "it launches a browser, which the headless suite may not do. What it reads is decided in tools/src/hardware/machine.ts, which is measured",
+  },
+  {
+    pattern: "tools/src/hardware/reporter.ts",
+    reason:
+      "the test runner constructs it and calls it, so nothing here reaches it. What it prints is decided in tools/src/hardware/coverage.ts, which is measured",
+  },
+  {
     pattern: "tools/src/coverage-scope.ts",
     reason: "this file, which is configuration rather than logic",
   },

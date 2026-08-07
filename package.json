@@ -14,6 +14,7 @@
     "check:pins": "node tools/src/check-toolchain-pins.ts",
     "check:types": "tsc --noEmit --project tools/tsconfig.json",
     "test": "vitest run --config tools/vitest.config.ts --coverage",
+    "test:needs-display-and-gpu": "node tools/src/run-hardware-suite.ts",
     "upstream:revision": "node tools/src/print-upstream-revision.ts"
   },
   "devDependencies": {
