@@ -57,10 +57,10 @@ The floor is lines 95%, functions 95%, branches 90%, statements 95%, and the run
 fails below it. The command that produces the number is the suite command above,
 which prints:
 
-    Statements   : 100% ( 98/98 )
-    Branches     : 100% ( 69/69 )
-    Functions    : 100% ( 12/12 )
-    Lines        : 100% ( 91/91 )
+    Statements   : 99.26% ( 269/271 )
+    Branches     : 98% ( 147/150 )
+    Functions    : 100% ( 40/40 )
+    Lines        : 100% ( 234/234 )
 
 The floor is below the measurement on purpose. A floor set at what the suite
 happens to reach today turns every unrelated change into a coverage argument, and
@@ -136,6 +136,8 @@ Each one is a script in `package.json`, and running all of them is
 
     corepack pnpm run check:pins
     corepack pnpm run check:languages
+    corepack pnpm run check:guide
+    corepack pnpm run check:invariants
     corepack pnpm run check:types
     corepack pnpm run check:locks
 
@@ -157,6 +159,17 @@ tracked nor written by one of these runs, or a script `package.json` does not
 define. It reads backticked spans and `corepack pnpm run` commands, and it judges
 no other sentence here: whether anything else written in this guide is true is
 not something a run can decide.
+
+`check:invariants` refuses a tracked text file that violates one of the string
+facts this tree holds: a credential shape, a path under somebody's home
+directory, a backticked check name no workflow declares and `package.json` does
+not define, and a duration quoted with no 95th percentile beside it in the same
+paragraph. The invariants are a table in `tools/src/checks/invariants.ts`, and
+the run prints every one of them with the failure it prevents and the bound on
+what it reaches, so a green run is a statement about those four shapes rather
+than about the tree. Each has a fixture in `tests/unit/invariants.test.ts` that
+is the near miss rather than an obvious violation, and each fixture is also run
+with its own invariant switched off, where it has to pass.
 
 `check:locks` refuses a `pnpm-lock.yaml` that a resolve would rewrite. It hashes
 the file, resolves once, hashes again, and on a difference puts the original
@@ -195,11 +208,21 @@ a person re-running the command and not by a run.
 The workflows in `.github/workflows/` are what the server runs. The unit suite is
 among them, under the name `unit-suite`, and the job id and the check name are
 the same string so that a rule naming either one keeps matching.
+`check:invariants` is among them too, under the name `invariants`, on the same
+convention and for the same reason.
 
-The four `check:` scripts are not among them. Issue #8 is where a check gets a
+The other `check:` scripts are not among them. Issue #8 is where a check gets a
 stable name and is put in front of the default branch, and until that lands,
-running them is something a person does before pushing. No ruleset requires any
-check today, so a red run blocks nothing on its own.
+running them is something a person does before pushing.
+
+No ruleset requires any check today, so a red run blocks nothing on its own. The
+ruleset on the default branch refuses a deletion, a non-fast-forward and a direct
+push, and it carries no `required_status_checks` rule:
+
+    gh api repos/iderex/entwurf/rulesets --jq '.[] | select(.name == "gate") | .id'
+    20487962
+    gh api repos/iderex/entwurf/rulesets/20487962 --jq '[.rules[].type]'
+    ["deletion","non_fast_forward","pull_request"]
 
 ## Where a change lands
 
