@@ -92,13 +92,16 @@ failure.
 [plugins/](plugins/) says what that means for an author, and why there is no target
 number.
 
-**There is no warranty.** That belongs to the licence, and this repository has no
-licence file yet, which means nobody may do more with it than what viewing a
-public repository allows:
+**There is no warranty.** That belongs to the licence, and the licence is now in
+the tree:
 
     git ls-files | grep -ix 'licen[cs]e\(\.md\|\.txt\)\?'
+    LICENSE
 
-That prints nothing at the revision this page lands on.
+It is AGPL-3.0-only, and sections 15 and 16 of it are where the disclaimer of
+warranty and the limitation of liability are written. Read them there rather
+than here, because a summary of a warranty disclaimer is the one kind of summary
+nobody should rely on.
 
 ## How an entry gets added here
 

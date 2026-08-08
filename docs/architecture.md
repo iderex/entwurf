@@ -180,16 +180,14 @@ project builds nothing that sends them anywhere.
 **A measurement of any commercial competitor.** `docs/performance/incumbent-comparison.md`
 states that no such number is published here and gives the two independent reasons.
 
-**A licence, and therefore permission to copy, modify or run this.** The
-repository has no licence file yet, which is a fact of the tree:
+**Any answer to a question the tracker holds open.** Several positions this
+project will need are deliberately not taken in any document yet. Where a record
+touches one, it says so and points at the tracker rather than assuming an
+answer.
+
+The licence used to be on that list and is no longer. It is AGPL-3.0-only, a
+maintainer decision recorded against the first entry of #89, and the file is in
+the tree:
 
     git ls-files | grep -ix 'licen[cs]e\(\.md\|\.txt\)\?'
-
-That prints nothing at the revision this file lands on. Until it does, nobody may
-do more than what viewing a public repository allows. Choosing the licence is a
-maintainer decision and is held on the tracker rather than here.
-
-**Any answer to a question the tracker holds open.** Several positions this
-project will need are deliberately not taken in any document yet, including the
-licence above. Where a record touches one, it says so and points at the tracker
-rather than assuming an answer.
+    LICENSE
