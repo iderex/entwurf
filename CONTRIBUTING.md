@@ -51,6 +51,31 @@ less the more of them it collected. A test that needs elevation is not worked
 around here at all. It is skipped, and the skip is written into the issue rather
 than into a comment.
 
+Two things hold the rule, and they hold different halves of it. The first is a
+refusal inside the suite: a file under `tests/unit/` that imports a browser
+driver is refused when the bundler resolves the import, before any test body
+runs, and the message names the file, the driver, `tests/hardware/` and the
+command that runs the other suite. The decision is in
+`tools/src/checks/headless-rule.ts` and the proof is
+`tests/unit/headless-rule.test.ts`, which takes the plugin out of the exported
+Vitest config rather than building a second one, so what it proves is the object
+this suite runs under. Every leg of that proof is also run with the rule switched
+off, where the same fixture has to pass.
+
+The second is the machine. `clean-machine` runs the suite inside an unprivileged
+container and, before it installs anything, reads that machine for `DISPLAY`,
+`WAYLAND_DISPLAY`, an X socket directory and a GPU device node, refusing the run
+if it finds any of them. This is what covers elevation, which no import can
+reveal: a test needing it fails on a machine that has none rather than passing
+quietly on one that does.
+
+What neither reaches. The refusal knows the driver packages written down in that
+module and no others, so a browser driver nobody has listed walks past it. It
+does not reach a module pulled in at run time through `node:module`, which never
+passes through the bundler. And it says nothing about a test that shells out to
+something needing a screen without importing anything, which only the machine
+half catches, and only by failing rather than by naming the reason.
+
 ## The coverage floor
 
 The floor is lines 95%, functions 95%, branches 90%, statements 95%, and the run

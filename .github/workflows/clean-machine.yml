@@ -8,9 +8,16 @@
 # official Node image at the pinned version carries Node, corepack and git and
 # not this project's package manager, its dependencies or its browsers.
 #
-# The two steps below are the two commands from the guide, copied rather than
-# adapted. If they stop being the same commands, this workflow has stopped being
-# evidence for the guide.
+# The two install-and-test steps below are the two commands from the guide,
+# copied rather than adapted. If they stop being the same commands, this workflow
+# has stopped being evidence for the guide.
+#
+# It is also where the headless rule's claim about the machine is tested rather
+# than asserted. The container runs unprivileged and the step before the install
+# reads the machine for a display, an X or Wayland socket and a GPU device node,
+# refusing the run if it finds one. So a green run here says the suite completed
+# on a machine with none of the three, which is what the rule claims and what a
+# run on a hosted runner image cannot say on its own.
 name: clean-machine
 
 on:
@@ -34,13 +41,79 @@ jobs:
     runs-on: ubuntu-latest
     # Pinned by digest as well as by tag, so the machine this ran on is the
     # machine a later reader gets. The tag alone is a moving reference.
-    container: node:24.18.1-bookworm@sha256:87362b5d965240a1bc79f85cec63179d4ee853741413b274a4721f2742eb8393
+    container:
+      image: node:24.18.1-bookworm@sha256:87362b5d965240a1bc79f85cec63179d4ee853741413b274a4721f2742eb8393
+      # Unprivileged, because one of the three things the headless rule claims is
+      # that nothing in the unit suite needs elevation, and a suite that ran as
+      # root would report that claim green without having tested it. The uid is
+      # the one the runner owns the workspace with, so the checkout and the
+      # install still write where they have to.
+      options: --user 1001:1001
     timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Refuse this machine if it is not the one the headless rule names
+        # The claim under test is that the unit suite needs no display, no GPU and
+        # no privilege. A run that made that claim on a machine carrying all three
+        # would be green and would have proved nothing, so the machine is read
+        # first and the job stops here rather than reporting a pass it did not
+        # earn. Fail closed on each of the four, and print every one of them
+        # whether it passed or not, so a reader can see what was examined.
+        run: |
+          set -euo pipefail
+          fail=0
+          say() { printf '%-24s %s\n' "$1" "$2"; }
+
+          if [ "$(id -u)" -eq 0 ]; then
+            say "user:" "root"
+            echo "::error::this job is running as root, and the rule under test is that the suite needs no elevation."
+            fail=1
+          else
+            say "user:" "uid $(id -u), unprivileged"
+          fi
+
+          if [ -n "${DISPLAY:-}" ]; then
+            say "DISPLAY:" "${DISPLAY}"
+            echo "::error::DISPLAY is set, so this machine cannot be read as one with no display."
+            fail=1
+          else
+            say "DISPLAY:" "not set"
+          fi
+
+          if [ -n "${WAYLAND_DISPLAY:-}" ]; then
+            say "WAYLAND_DISPLAY:" "${WAYLAND_DISPLAY}"
+            echo "::error::WAYLAND_DISPLAY is set, so this machine cannot be read as one with no display."
+            fail=1
+          else
+            say "WAYLAND_DISPLAY:" "not set"
+          fi
+
+          if [ -e /tmp/.X11-unix ]; then
+            say "X socket directory:" "present"
+            echo "::error::/tmp/.X11-unix exists, so an X server may be reachable from here."
+            fail=1
+          else
+            say "X socket directory:" "absent"
+          fi
+
+          nodes=$(ls -d /dev/dri /dev/nvidia* /dev/kfd 2>/dev/null | tr '\n' ' ' || true)
+          if [ -n "${nodes}" ]; then
+            say "GPU device nodes:" "${nodes}"
+            echo "::error::a GPU device node is present, so this machine cannot be read as one with no GPU."
+            fail=1
+          else
+            say "GPU device nodes:" "none"
+          fi
+
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::this machine is not the one the headless rule describes. Nothing was run, so this run may not be quoted as a pass."
+            exit 1
+          fi
+          echo "no display, no X or Wayland socket, no GPU device node, no privilege."
 
       - name: Say what this machine has before anything is installed
         run: |
