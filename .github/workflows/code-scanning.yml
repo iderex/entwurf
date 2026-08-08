@@ -109,6 +109,25 @@ jobs:
       # Read the tree. Nothing is uploaded from this job, so it needs no scope
       # for writing security events, and the analysis below is told not to try.
       contents: read
+    env:
+      # On a pull request the action computes the changed ranges and reports only
+      # results inside them. For the job above that is wanted: an alert about code
+      # the change did not touch is noise on that change. For this job it is fatal,
+      # and it made this job red on the first pull request that did not edit the
+      # fixture. What this job asserts about is a file that is deliberately never
+      # in the diff, so the filter removed the one result the job exists to count
+      # and the job read that silence as a scanner that had stopped reading.
+      #
+      # The option is the action's own, read in getOfflineValue in
+      # src/feature-flags.ts at the pinned revision, where the string "false"
+      # disables the feature outright rather than deferring to the server.
+      #
+      # Nothing is uploaded from here and the analysis is one small file, so the
+      # cost of scanning it whole on every run is the cost this job was already
+      # paying before the feature applied. The assertion below is what proves the
+      # option took effect: on a pull request whose diff excludes the fixture, a
+      # count of one is only reachable with the filter off.
+      CODEQL_ACTION_DIFF_INFORMED_QUERIES: "false"
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -137,6 +156,10 @@ jobs:
         # The whole point of the job. A zero here does not mean the tree is
         # clean, it means the instrument is not reading, and the two must never
         # print the same thing.
+        #
+        # The message on zero once offered three causes and the true one was a
+        # fourth, so a reader was sent to check three things that were all fine.
+        # It now names the filter as well, and says what the run measured.
         run: |
           set -euo pipefail
           rule="js/path-injection"
@@ -153,7 +176,7 @@ jobs:
             total=$((total + count))
           done
           if [ "$total" -eq 0 ]; then
-            echo "::error::The scanner did not find the deliberate vulnerability in tests/fixtures/code-scanning. Either the fixture stopped being vulnerable, or the query that finds it stopped running, or the scanner is no longer reading this repository. Until this is understood, the green tick on the other job means nothing."
+            echo "::error::This run analysed tests/fixtures/code-scanning and counted 0 result(s) for ${rule}. It did not measure anything else, and it is not a statement that the tree is clean. Four things produce this zero: the fixture stopped being vulnerable, the query that finds it stopped running, the scanner is no longer reading this repository, or the results were filtered before this step saw them - CODEQL_ACTION_DIFF_INFORMED_QUERIES is set to false on this job for exactly that reason, and a run where it was not would filter out a fixture no pull request touches. Until which one it is is known, the green tick on the other job means nothing."
             exit 1
           fi
-          echo "The scanner found the planted vulnerability: $total result(s) for $rule."
+          echo "The scanner found the planted vulnerability: $total result(s) for $rule. On a pull request whose diff does not touch the fixture, that count is only reachable with the diff filter off, so this line is also the evidence that it is off."

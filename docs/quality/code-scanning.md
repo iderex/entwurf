@@ -112,7 +112,50 @@ Scanned separately, the same fixture answers the same question and the answer is
 a verdict. The proof job reads the result file, counts the results for the query
 that finds this, and refuses on zero, saying that a zero means the instrument is
 not reading rather than that the tree is clean. The day the scanner stops finding
-the fixture, that job goes red and says which of the three things happened.
+the fixture, that job goes red and names the causes that produce a zero.
+
+## The filter that made the proof wrong, and what it still does to the other job
+
+On a pull request the action computes the changed ranges and reports only results
+inside them. It says so in its own log:
+
+    gh run view 31261841784 --repo iderex/entwurf --log | grep -E "Persisted .* diff range|result\(s\) for js/path-injection"
+    Computing PR diff ranges...
+    Persisted 7 diff range(s) across 6 file(s).
+    sarif-results/javascript.sarif: 0 result(s) for js/path-injection
+
+That was a pull request about an asset register. It changed six files, none of
+them the fixture, so the fixture's alert was filtered out and the proof job read
+the silence as a scanner that had stopped reading. The same fixture, in the same
+tree, on a pull request that edited it, and on the push that followed the merge:
+
+    gh run view 31254469335 --repo iderex/entwurf --log | grep -E "Persisted .* diff range|result\(s\) for js/path-injection"
+    Computing PR diff ranges...
+    Persisted 3 diff range(s) across 3 file(s).
+    sarif-results/javascript.sarif: 1 result(s) for js/path-injection
+
+    gh run view 31254801308 --repo iderex/entwurf --log | grep -E "Computing PR diff ranges|result\(s\) for js/path-injection"
+    sarif-results/javascript.sarif: 1 result(s) for js/path-injection
+
+So the proof was green on the two cases nobody needed it for and red on the one
+everybody else would meet. The proof job now sets
+`CODEQL_ACTION_DIFF_INFORMED_QUERIES` to false, next to the reason, and its own
+assertion is what proves the setting took effect: on a pull request whose diff
+excludes the fixture, a count of one is only reachable with the filter off.
+
+The other job keeps the filter, and that is deliberate rather than an oversight.
+An alert about code a change did not touch is noise on that change. But it decides
+what a green tick there covers, and that is worth stating plainly rather than
+leaving to be inferred:
+
+**On a pull request, `code-scanning` reports findings in the changed ranges. It
+is not a scan of the tree.** A defect elsewhere in the repository does not appear
+on the pull request that happens to be open, and a green tick there is not
+evidence that the rest of the tree is clean.
+
+**On a push to the default branch, no diff is computed and the whole offered set
+is analysed.** That run is the one whose green tick is a statement about the tree,
+and it is the run whose findings reach the code-scanning tab as the current state.
 
 The exclusion has a cost and it is stated rather than buried. Nothing under
 `tests/fixtures/code-scanning/` is covered by the analysis that uploads, so real
