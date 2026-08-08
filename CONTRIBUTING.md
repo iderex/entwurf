@@ -238,6 +238,20 @@ push, and it carries no `required_status_checks` rule:
     gh api repos/iderex/entwurf/rulesets/20487962 --jq '[.rules[].type]'
     ["deletion","non_fast_forward","pull_request"]
 
+## The terms you contribute under
+
+Read `docs/legal/contribution-terms.md` before you write anything. It is short,
+and one part of it is not guessable from anywhere else: a change made here may be
+offered to the upstream project under that project's licence, which is not this
+one, and contributing here includes agreeing to that. A contributor has to know
+that before the code exists rather than once somebody has decided where to send
+it.
+
+The rest of that page is the licence your work is made available under, the
+Developer Certificate of Origin your sign-off certifies, and what the route that
+checks the sign-off does and does not reach. The certificate itself is in `DCO`
+at the root. Sign every commit with `git commit -s`.
+
 ## Where a change lands
 
 Work goes to the upstream project first, and what stays here is what upstream
