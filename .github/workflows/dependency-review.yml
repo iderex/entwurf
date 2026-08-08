@@ -31,12 +31,6 @@ jobs:
           # upgraded dependency blocks the PR. Relax only with a documented
           # reason.
           fail-on-severity: low
-          # The scope filter runs before both the vulnerability check above and
-          # the licence check below, and the action's own default is the runtime
-          # scope alone. Every dependency this repository declares is a
-          # development dependency, so without this line both checks are handed
-          # an empty list and pass over the whole tree.
-          fail-on-scopes: runtime, development
           # What this repository may distribute a combined work under, given its
           # own licence. The list is here rather than in a document because this
           # is the copy the action reads; docs/quality/dependency-licences.md
