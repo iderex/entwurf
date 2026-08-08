@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // The shape every check produces, and the one place a report becomes an exit
 // status. Keeping the decision in a value rather than in a call to process.exit
 // is what lets the suite run a check without ending the process it runs in.

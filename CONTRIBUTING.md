@@ -164,6 +164,7 @@ Each one is a script in `package.json`, and running all of them is
     corepack pnpm run check:guide
     corepack pnpm run check:invariants
     corepack pnpm run check:assets
+    corepack pnpm run check:headers
     corepack pnpm run check:types
     corepack pnpm run check:locks
 
@@ -209,6 +210,19 @@ tracks and says nothing about what a running system offers from anywhere else; a
 it cannot judge whether a licence that is written down is the one the asset
 carries. The register is empty today, and the rule it exists to hold is that an
 asset whose licence cannot be established is removed rather than shipped.
+
+`check:headers` refuses a source file that declares no licence, one that declares
+a licence its location does not carry, and one sitting where no rule says which
+licence applies. The two categories are this repository's own code under
+AGPL-3.0-only and code derived from or written for the upstream tool under
+MPL-2.0, which is per-file copyleft and not this repository's to change. The
+header is the SPDX short form rather than the licence's own boilerplate, because a
+paragraph copied into every file restates the terms in the place least able to
+keep them current. Its bounds are printed by every run: it knows the extensions it
+has a comment syntax for, it reads only the first five lines of a file, and it
+cannot judge whether the licence a file declares is the licence its contents may
+lawfully carry. `corepack pnpm run headers` applies a header that is missing, and
+never rewrites one that is already there, whatever it says.
 
 `check:locks` refuses a `pnpm-lock.yaml` that a resolve would rewrite. It hashes
 the file, resolves once, hashes again, and on a difference puts the original
@@ -256,8 +270,9 @@ different reason.
 The workflows in `.github/workflows/` are what the server runs. The unit suite is
 among them, under the name `unit-suite`, and the job id and the check name are
 the same string so that a rule naming either one keeps matching.
-`check:invariants` is among them too, under the name `invariants`, on the same
-convention and for the same reason.
+`check:invariants` is among them too, under the name `invariants`, and
+`check:headers` under the name `source-headers`, both on the same convention and
+for the same reason.
 
 The other `check:` scripts are not among them. Issue #8 is where a check gets a
 stable name and is put in front of the default branch, and until that lands,

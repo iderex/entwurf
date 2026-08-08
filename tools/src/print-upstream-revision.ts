@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Prints the upstream revision this tree builds and measures against, so that a
 // number, a profile or a bug report can carry it without anybody reading a file
 // by hand.

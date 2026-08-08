@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { describe, expect, test } from "vitest";
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Decides whether the versions package.json carries still match the pin table,
 // and whether the pin table was produced against the revision the tree builds
 // against. Reads no file: the runner supplies the parsed documents, so the suite

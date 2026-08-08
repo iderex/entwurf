@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // What coverage is measured over, and what it is not measured over. This is a
 // module rather than four lines inside the Vitest config because the run prints
 // it: an exclusion nobody sees is indistinguishable from code that was covered,

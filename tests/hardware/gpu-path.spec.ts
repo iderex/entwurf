@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Cases that cannot run without a display and a GPU, and that are worth nothing
 // if they run without one. They belong here rather than in the unit suite for
 // that reason and no other.

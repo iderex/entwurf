@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Runner. Asks git which paths are tracked and hands the list to the decision in
 // tools/src/checks/languages.ts, which is where the suite reaches it.
 

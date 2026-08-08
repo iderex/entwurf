@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { defineConfig } from "@playwright/test";
 import { dirname, join } from "node:path";
 import { gpuLaunchArgs } from "./src/hardware/probe.ts";

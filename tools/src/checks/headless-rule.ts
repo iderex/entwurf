@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // The boundary between the two suites, and the one place it is decided. A unit
 // test that imports a browser driver needs a display and a GPU, and the unit
 // suite has neither, so the import is refused when the bundler resolves it rather

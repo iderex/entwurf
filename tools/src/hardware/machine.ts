@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // What a hardware-bound run has to say about the machine it ran on, and the
 // decision about whether that machine qualifies at all.
 //

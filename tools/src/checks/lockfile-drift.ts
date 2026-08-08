@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Decides what a resolve did to the lock file. Spawns nothing and reads nothing:
 // the runner hands over the two hashes and how the resolve ended, so the suite can
 // put a failed resolve and a rewritten lock file in front of this without either

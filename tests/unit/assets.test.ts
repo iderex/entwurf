@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // The proof for the asset register. Each rule carries a fixture that is a near
 // miss rather than an obvious violation: the register somebody actually writes,
 // one edit away from the correct one, which is also here and has to pass. A

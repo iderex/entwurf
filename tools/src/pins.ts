@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Loading and shape-checking of the two files that hold every pin: the upstream
 // revision this tree builds against, and the toolchain versions read out of that
 // revision. Both are data rather than prose, so a check can compare them against

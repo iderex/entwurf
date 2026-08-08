@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // The invariants that are string facts about the tree, and the one place they are
 // listed. Each entry carries the failure it prevents and the bound on what it
 // judges, and the run prints both, so the list a reader trusts is derived from

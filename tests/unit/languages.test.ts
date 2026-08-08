@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { describe, expect, test } from "vitest";
 import { checkLanguages, languageByExtension } from "../../tools/src/checks/languages.ts";
 import { passed } from "../../tools/src/checks/report.ts";
