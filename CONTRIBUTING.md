@@ -57,10 +57,10 @@ The floor is lines 95%, functions 95%, branches 90%, statements 95%, and the run
 fails below it. The command that produces the number is the suite command above,
 which prints:
 
-    Statements   : 99.26% ( 269/271 )
-    Branches     : 98% ( 147/150 )
-    Functions    : 100% ( 40/40 )
-    Lines        : 100% ( 234/234 )
+    Statements   : 99.47% ( 380/382 )
+    Branches     : 98.52% ( 200/203 )
+    Functions    : 100% ( 60/60 )
+    Lines        : 100% ( 335/335 )
 
 The floor is below the measurement on purpose. A floor set at what the suite
 happens to reach today turns every unrelated change into a coverage argument, and
@@ -138,6 +138,7 @@ Each one is a script in `package.json`, and running all of them is
     corepack pnpm run check:languages
     corepack pnpm run check:guide
     corepack pnpm run check:invariants
+    corepack pnpm run check:assets
     corepack pnpm run check:types
     corepack pnpm run check:locks
 
@@ -170,6 +171,19 @@ what it reaches, so a green run is a statement about those four shapes rather
 than about the tree. Each has a fixture in `tests/unit/invariants.test.ts` that
 is the near miss rather than an obvious violation, and each fixture is also run
 with its own invariant switched off, where it has to pass.
+
+`check:assets` refuses a font, an icon or a sample design file that this tree
+carries with no entry in `docs/legal/assets.md`, and it refuses an entry there
+that names a file the tree does not carry, so the register and the tree cannot
+drift apart in either direction. It also refuses an entry with no licence, one
+whose licence field carries a placeholder, one that does not say where the licence
+was read or on what date, and two entries naming one path. Its bounds are printed
+by every run and there are three: it reads extensions and never file contents, so
+an asset embedded in a source file is not reached; it judges what this repository
+tracks and says nothing about what a running system offers from anywhere else; and
+it cannot judge whether a licence that is written down is the one the asset
+carries. The register is empty today, and the rule it exists to hold is that an
+asset whose licence cannot be established is removed rather than shipped.
 
 `check:locks` refuses a `pnpm-lock.yaml` that a resolve would rewrite. It hashes
 the file, resolves once, hashes again, and on a difference puts the original
