@@ -7,9 +7,16 @@
 // the alert this file raises is that evidence. docs/quality/code-scanning.md is
 // where the alert is named and where its remaining open is explained.
 //
-// The vulnerability is the ordinary one. A request names a file, the name is
-// taken from the query string, and it reaches the file system without ever
-// being checked against a root, so ../../ walks wherever the process can read.
+// The vulnerability is the ordinary one. A request arrives, the path it asks for
+// is handed to the file system exactly as it was received, and nothing resolves
+// it against a root first, so ../../ walks wherever the process can read.
+//
+// The flow is deliberately direct, from the request straight into the read, with
+// nothing in between. The first version of this file took the name out of the
+// query string instead, which is the more realistic shape and which the scanner
+// did not follow: the run evaluated the query that judges this and reported
+// nothing. A fixture whose own flow the scanner cannot see proves the opposite of
+// what it was written for, so the indirection came out.
 //
 // Nothing imports this module, no test loads it, no build includes it and the
 // server it constructs is never told to listen. The unit suite runs only
@@ -24,15 +31,9 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs";
 
-export const serverThatTrustsTheQueryString = createServer((request, response) => {
-  // Everything after this point treats an unchecked string from the network as
-  // a path on the host.
-  const asked = new URL(request.url ?? "/", "http://example.invalid").searchParams.get("file");
-  if (asked === null) {
-    response.statusCode = 400;
-    response.end();
-    return;
-  }
+export const serverThatTrustsTheRequestPath = createServer((request, response) => {
+  // An unchecked string from the network, treated as a path on the host.
+  const asked = request.url ?? "/";
 
   readFile(asked, (failure, bytes) => {
     if (failure !== null) {

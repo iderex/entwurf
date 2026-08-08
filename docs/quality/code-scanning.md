@@ -75,10 +75,20 @@ a set of string facts in tracked text, and it prints its own bound on every run.
 ## The fixture, and the alert it leaves open
 
 `tests/fixtures/code-scanning/typescript/path-injection.ts` is a deliberately
-vulnerable file. A request names a file, the name is taken from the query string,
-and it reaches the file system with no check against a root. It is the proof that
-the scanner is reaching this repository's code rather than passing over an empty
-set.
+vulnerable file. A request arrives, the path it asks for is handed to the file
+system exactly as it was received, and nothing resolves it against a root first.
+It is the proof that the scanner is reaching this repository's code rather than
+passing over an empty set.
+
+The flow in it is direct, from the request straight into the read, and that is a
+correction rather than a first draft. The first version took the file name out of
+the query string, which is the more realistic shape, and the scanner did not
+follow it: the run evaluated the query that judges this and reported nothing. A
+fixture whose own flow the scanner cannot see proves the opposite of what it was
+written for. This is worth knowing beyond this file, because it is the bound in
+the sharpest form available: what the scanner finds is what its queries model, and
+a real defect written the way the first version was written would have gone past
+it in silence.
 
 It raises an alert, and the alert stays open. Closing it would mean either
 removing the fixture, which removes the proof, or dismissing it, which teaches a
