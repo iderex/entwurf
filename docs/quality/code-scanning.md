@@ -1,0 +1,112 @@
+# Code scanning: what is scanned, and what is not
+
+A scanner that reaches nothing prints the same green tick as one that reaches
+everything and finds nothing. This page is the difference between the two. It
+says which languages this tree carries, which of them are scanned, what stands in
+place of a scanner where nothing scans, and what the gate does not reach even
+where it runs.
+
+## What runs
+
+CodeQL, on every pull request and on every push to the default branch, under the
+check name `code-scanning`. The workflow is `.github/workflows/code-scanning.yml`.
+
+Results go to this repository's code-scanning tab rather than only into a
+workflow log, which is the point of uploading them: a finding nobody opens a log
+to read is a finding nobody has.
+
+The job id and the check name are the same string, and there is no matrix, so the
+name a rule or a reader knows does not move when a second language arrives. That
+convention is the one the unit suite and the invariants gate already use.
+
+## Which languages this tree carries
+
+Derived rather than asserted. The languages check reads the extension of every
+tracked path and prints what it found:
+
+    node tools/src/check-languages.ts
+    examined 67 tracked path(s) by extension: typescript (33); 34 path(s) carry an extension this check does not classify and were NOT judged.
+    languages named by tools/toolchains.json: clojure, clojurescript, rust, typescript
+
+That is the runner the `check:languages` script executes. It is run directly here
+because the script refuses under a Node other than the pinned one, and the
+classification it produces is a fact about the tree rather than about the runtime
+it was produced under.
+
+Two numbers in that line matter. Every tracked source file in this repository is
+TypeScript. And thirty-four paths carry an extension the check declines to
+classify, which is the Markdown, the JSON, the YAML, the lock file and the
+ignore file.
+
+## Language by language
+
+**TypeScript.** Scanned by CodeQL, which is what the workflow named above runs.
+Every tracked path with a TypeScript or JavaScript extension is handed to it, and
+the run prints that list before the scan.
+
+**GitHub Actions workflows.** Not scanned by CodeQL here, and something else
+stands in its place: the workflow audit in `.github/workflows/zizmor.yml`, which
+fails the build on any actionable finding and uploads the same set to the
+code-scanning tab. That is the reason CodeQL is not also pointed at the workflow
+files. It is not the whole reason, and the other half is worth writing down: the
+only way to prove a workflow scanner reaches this tree is to commit a deliberately
+unsafe workflow, and that same file would be refused by the audit that already
+runs. A fixture that cannot be committed cannot prove anything, so this surface is
+held by one scanner rather than by two.
+
+**Clojure and ClojureScript.** No tracked file in this tree is written in either,
+which the count above is the evidence for. They are named in
+`tools/toolchains.json` because that table records the upstream project's
+toolchain rather than this repository's contents. If a file in either language
+ever lands here, nothing scans it and nothing stands in its place: CodeQL does not
+support either language. That is an absence rather than a plan, and it is written
+here so it is not discovered later.
+
+**Rust.** The same, with one difference. No tracked file in this tree is written
+in it, and were one to arrive, CodeQL does support the language, so the repair
+would be to add it to the workflow rather than to accept a gap. Nothing scans it
+today because there is nothing to scan.
+
+**Markdown, JSON, YAML and the ignore file.** Not code, not scanned, and nothing
+stands in place of a scanner because a scanner is not the right instrument. What
+does judge them is narrower and is described elsewhere: `check:invariants` refuses
+a set of string facts in tracked text, and it prints its own bound on every run.
+
+## The fixture, and the alert it leaves open
+
+`tests/fixtures/code-scanning/typescript/path-injection.ts` is a deliberately
+vulnerable file. A request names a file, the name is taken from the query string,
+and it reaches the file system with no check against a root. It is the proof that
+the scanner is reaching this repository's code rather than passing over an empty
+set.
+
+It raises an alert, and the alert stays open. Closing it would mean either
+removing the fixture, which removes the proof, or dismissing it, which teaches a
+reader that a dismissed alert here is routine. An open alert with this page beside
+it is the more honest of the three, and it is the state a reader should expect to
+find.
+
+Nothing imports the fixture, no test loads it, no build includes it, and the
+server it constructs is never told to listen. The unit suite runs only the tests
+under `tests/unit/`, and coverage is measured only over `tools/src/`, so the file
+is outside both. The type checker is the one route that reads it, which is why it
+compiles.
+
+## What this gate does not reach
+
+**It does not prove the scan covered a path.** The run prints the set of paths it
+offers the scanner, and the scanner decides for itself what it extracts from that
+set, so a printed path is not by itself an analysed one. The direction that does
+hold is the useful one: a path absent from that list was not scanned.
+
+**It does not fail the build.** No ruleset on the default branch requires any
+check today, so a finding here blocks nothing on its own. Issue #8 is where a
+check gets put in front of the default branch, and until that lands this gate
+reports rather than refuses.
+
+**It finds what its queries look for and nothing else.** A clean run is a
+statement about the query set that ran, not about the code being free of defects.
+
+**It is one lens.** Issue #74 is where a second analyser with a different lens is
+added, on the argument that one tool's blind spot is not visible from inside that
+tool.

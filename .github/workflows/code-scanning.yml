@@ -1,0 +1,86 @@
+# Code scanning over the code this tree actually carries. CodeQL is the scanner,
+# and TypeScript is the only language it has anything to read here: every tracked
+# source file in this repository is TypeScript, which the languages check prints
+# on every run.
+#
+# What stands in place of a scanner for everything else is written in
+# docs/quality/code-scanning.md, one entry per language, including the entries
+# where the honest answer is that nothing does. That document is the half of this
+# gate a workflow cannot carry, because an absence is not something a run can
+# print.
+#
+# The job id and the check name are the same string, on the convention the unit
+# suite and the invariants gate already follow: the check run takes its name from
+# `name:` where one is set and from the job id otherwise, so a rule naming either
+# one keeps matching. There is deliberately no matrix. A matrix appends its value
+# to the check name, so the name every rule and every reader knows would move on
+# the day a second language arrives, which is the opposite of a stable name.
+name: code-scanning
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: [main]
+
+# Deny by default; the job below grants only the scopes it needs.
+permissions: {}
+
+# Cancel a superseded run on the same ref. This is an analysis rather than a
+# publish, so dropping an obsolete run is safe.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code-scanning:
+    name: code-scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      # Check out the tree that is scanned.
+      contents: read
+      # Upload the results into the code-scanning tab, which is the only place a
+      # reader sees them without opening a workflow log.
+      security-events: write
+      # The actions read scope is not granted. CodeQL asks for it on a private
+      # repository so it can read workflow run status; this repository is public
+      # and it is not needed, and a scope granted for nothing is still a scope.
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Nothing here pushes, so the token is not persisted into .git/config.
+          persist-credentials: false
+
+      - name: Say which paths this run offers the scanner
+        # Derived from git rather than written out here, so the list cannot drift
+        # against the tree. Its bound, stated because a printed list reads as a
+        # guarantee: this is the set the run hands over, and the scanner decides
+        # for itself what it extracts from that set, so a path printed here is
+        # not by itself a path that was analysed. The direction that does hold is
+        # the useful one. A directory absent from this list was not scanned.
+        run: |
+          set -euo pipefail
+          paths=$(git ls-files -- '*.ts' '*.tsx' '*.mts' '*.cts' '*.js' '*.mjs' '*.cjs' '*.jsx')
+          echo "paths offered to the scanner:"
+          echo "$paths" | sed 's/^/  /'
+          echo "count: $(echo "$paths" | grep -c . || true)"
+          echo "tracked paths in total: $(git ls-files | grep -c . || true)"
+
+      - name: Initialise the scanner
+        uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
+        with:
+          # One language, because one language is what the tree carries. The
+          # languages check is the authority for that and prints its count on
+          # every run; this value is wrong the moment that stops being true.
+          languages: javascript-typescript
+          # Nothing here is compiled to produce the database, so no build runs.
+          build-mode: none
+
+      - name: Analyse and upload the results
+        uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
+        with:
+          # A category of its own, so this analysis does not overwrite the two
+          # that already upload here under their own names.
+          category: code-scanning
