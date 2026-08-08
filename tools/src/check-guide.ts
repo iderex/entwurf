@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Runner. Reads the guide, asks git which of the paths it names are tracked and
 // which are ignored, reads the script names, and hands all of it to the decision
 // in tools/src/checks/guide.ts.

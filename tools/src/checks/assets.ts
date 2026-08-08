@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Decides whether every asset this repository tracks carries an entry in the
 // asset register, and whether every entry in the register still describes a file
 // that is here. It fails closed in both directions: an asset with no entry is

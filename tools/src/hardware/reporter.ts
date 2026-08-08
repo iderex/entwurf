@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // The reporter that makes a hardware-bound run readable. It prints the machine
 // before anything else, prints whether the whole set was examined or part of it,
 // and writes one result file that carries the machine beside every case.

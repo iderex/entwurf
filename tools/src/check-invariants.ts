@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Runner. Asks git which paths are tracked, reads the ones that are text, collects
 // the names a check in this tree can be referred to, and hands all of it to the
 // decision in tools/src/checks/invariants.ts, which is where the suite reaches it.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // A deliberately vulnerable file, and the only one in this tree.
 //
 // It exists because a scanner that reaches nothing and a scanner that reaches

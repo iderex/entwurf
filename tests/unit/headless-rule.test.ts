@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // The proof for the headless rule, which is the one thing the rule was missing:
 // it was a plugin nothing exercised, so a change that removed it or narrowed it
 // would have left every run green.

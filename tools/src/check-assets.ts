@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Runner. Asks git which paths are tracked, reads the asset register and hands
 // both to the decision in tools/src/checks/assets.ts, which is where the suite
 // reaches it.

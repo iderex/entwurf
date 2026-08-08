@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Decides which tracked paths are written in a language the means record does not
 // name. Reads no file and runs no git command: the runner supplies the path list,
 // so the suite can put a Python file in front of this without one existing.

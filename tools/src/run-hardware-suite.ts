@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // The command behind `test:needs-display-and-gpu`. It reads the machine first and
 // refuses one that cannot do the work, naming what was missing, and only then
 // starts the suite.

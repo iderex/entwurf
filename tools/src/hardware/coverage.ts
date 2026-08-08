@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Whether a hardware-bound run covered the whole set or part of it, decided from
 // what the command was asked to do and what the run then did.
 //

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { describe, expect, test } from "vitest";
 import { assess, describeMachine, hardwareDevice, isSoftware, machineFrom, type Probe } from "../../tools/src/hardware/machine.ts";
 

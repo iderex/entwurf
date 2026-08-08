@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Runner. Reads the three documents and hands them to the decision in
 // tools/src/checks/toolchain-pins.ts, which is where the suite reaches it.
 

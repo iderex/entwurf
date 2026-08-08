@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Runner. Hashes the lock file, runs one resolve that is allowed to write it,
 // hashes it again, and hands the pair to the decision in
 // tools/src/checks/lockfile-drift.ts.

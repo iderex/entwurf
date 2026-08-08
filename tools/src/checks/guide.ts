@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Refuses a contributor guide that names a path which does not resolve or a
 // script which does not exist.
 //

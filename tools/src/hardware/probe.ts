@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Launches a browser with the GPU enabled and reads what it says about the
 // machine. This is the impure half: everything it returns is decided elsewhere,
 // in tools/src/hardware/machine.ts, which the suite can reach.

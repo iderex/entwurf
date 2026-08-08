@@ -8,14 +8,16 @@
     "pnpm": "11.20.0"
   },
   "scripts": {
-    "check": "node tools/src/check-toolchain-pins.ts && node tools/src/check-languages.ts && node tools/src/check-guide.ts && node tools/src/check-invariants.ts && node tools/src/check-assets.ts && tsc --noEmit --project tools/tsconfig.json && node tools/src/check-lockfile-drift.ts",
+    "check": "node tools/src/check-toolchain-pins.ts && node tools/src/check-languages.ts && node tools/src/check-guide.ts && node tools/src/check-invariants.ts && node tools/src/check-assets.ts && node tools/src/check-source-headers.ts && tsc --noEmit --project tools/tsconfig.json && node tools/src/check-lockfile-drift.ts",
     "check:assets": "node tools/src/check-assets.ts",
     "check:guide": "node tools/src/check-guide.ts",
+    "check:headers": "node tools/src/check-source-headers.ts",
     "check:invariants": "node tools/src/check-invariants.ts",
     "check:languages": "node tools/src/check-languages.ts",
     "check:locks": "node tools/src/check-lockfile-drift.ts",
     "check:pins": "node tools/src/check-toolchain-pins.ts",
     "check:types": "tsc --noEmit --project tools/tsconfig.json",
+    "headers": "node tools/src/check-source-headers.ts --write",
     "test": "vitest run --config tools/vitest.config.ts --coverage",
     "test:needs-display-and-gpu": "node tools/src/run-hardware-suite.ts",
     "upstream:revision": "node tools/src/print-upstream-revision.ts"

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { defineConfig } from "vitest/config";
 import { dirname } from "node:path";
 import { coverageExclude, coverageFloor, coverageInclude } from "./src/coverage-scope.ts";

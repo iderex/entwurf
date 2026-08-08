@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Nils Lehnen
+// SPDX-License-Identifier: AGPL-3.0-only
+
 import { describe, expect, test } from "vitest";
 import { emit, passed, type Report } from "../../tools/src/checks/report.ts";
 import { coverageExclude, coverageFloor, coverageInclude, describeCoverageScope } from "../../tools/src/coverage-scope.ts";
