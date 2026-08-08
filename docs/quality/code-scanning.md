@@ -30,7 +30,7 @@ Derived rather than asserted. The languages check reads the extension of every
 tracked path and prints what it found:
 
     node tools/src/check-languages.ts
-    examined 67 tracked path(s) by extension: typescript (33); 34 path(s) carry an extension this check does not classify and were NOT judged.
+    examined 71 tracked path(s) by extension: typescript (36); 35 path(s) carry an extension this check does not classify and were NOT judged.
     languages named by tools/toolchains.json: clojure, clojurescript, rust, typescript
 
 That is the runner the `check:languages` script executes. It is run directly here
@@ -39,7 +39,7 @@ classification it produces is a fact about the tree rather than about the runtim
 it was produced under.
 
 Two numbers in that line matter. Every tracked source file in this repository is
-TypeScript. And thirty-four paths carry an extension the check declines to
+TypeScript. And thirty-five paths carry an extension the check declines to
 classify, which is the Markdown, the JSON, the YAML, the lock file and the
 ignore file.
 

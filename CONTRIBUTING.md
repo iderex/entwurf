@@ -57,10 +57,10 @@ The floor is lines 95%, functions 95%, branches 90%, statements 95%, and the run
 fails below it. The command that produces the number is the suite command above,
 which prints:
 
-    Statements   : 99.26% ( 269/271 )
-    Branches     : 98% ( 147/150 )
-    Functions    : 100% ( 40/40 )
-    Lines        : 100% ( 234/234 )
+    Statements   : 99.47% ( 380/382 )
+    Branches     : 98.52% ( 200/203 )
+    Functions    : 100% ( 60/60 )
+    Lines        : 100% ( 335/335 )
 
 The floor is below the measurement on purpose. A floor set at what the suite
 happens to reach today turns every unrelated change into a coverage argument, and
