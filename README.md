@@ -41,3 +41,9 @@ one.
 See [NOTICE.md](NOTICE.md) for the intended-use notice, and
 [docs/not-for.md](docs/not-for.md) for what this project declines to build and
 what it does not promise.
+
+## License
+
+AGPL-3.0-only, copyright 2026 Nils Lehnen.
+
+The full text is in [LICENSE](LICENSE).
