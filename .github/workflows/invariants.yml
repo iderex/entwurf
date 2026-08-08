@@ -1,0 +1,53 @@
+# The greppable invariants: the rules in this project that are string facts about
+# the tree, refused by a run rather than watched for by a reader. It runs on every
+# change because that is the only way a cheap check earns its place; one that runs
+# when somebody remembers is a rule nothing refuses.
+#
+# What it does not reach is printed by the run itself, one line per invariant,
+# beside the failure that invariant prevents. A green run here is a statement about
+# those four shapes and about nothing else in the tree.
+name: invariants
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: [main]
+
+# Read-only: the check reads tracked files and sets an exit status.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The job id and the check name are the same string, for the reason the unit
+  # suite gives: the check run takes its name from `name:` where one is set and
+  # from the job id otherwise, so a rule naming either one keeps matching.
+  invariants:
+    name: invariants
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The check asks git which paths are tracked, so it needs the checkout
+          # to be a repository. It never pushes, so the token is not persisted.
+          persist-credentials: false
+
+      - name: Install the pinned Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+
+      - name: Refuse a violated invariant
+        # No install step: the check imports only Node builtins and files in this
+        # tree, so it needs no dependency and no network. pnpm does not resolve
+        # before running a script here, which pnpm-workspace.yaml sets and says
+        # why.
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: corepack pnpm run check:invariants
