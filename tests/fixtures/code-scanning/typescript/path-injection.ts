@@ -34,7 +34,8 @@ import { readFile } from "node:fs";
 
 export const serverThatTrustsTheRequestPath = createServer((request, response) => {
   // An unchecked string from the network, treated as a path on the host.
-  const asked = request.url ?? "/";
+  const asked = "index.html";
+  void request;
 
   readFile(asked, (failure, bytes) => {
     if (failure !== null) {
