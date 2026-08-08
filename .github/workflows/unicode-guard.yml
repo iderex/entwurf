@@ -1,8 +1,11 @@
 name: unicode-guard
 
 on:
-  # Every branch and every PR: the guard is a cheap read-only scan and must cover
-  # any future release branch too, not just main (one code line since #954).
+  # Every branch and every PR: the guard is a cheap read-only scan, and a codepoint
+  # that makes source read differently from how it runs has to be refused before it
+  # is merged rather than found afterwards. This tree has one line of development
+  # and no release branch, so the pattern is written to cover whatever it grows
+  # instead of being widened later by somebody who remembers to.
   push:
     branches: ["**"]
   pull_request:

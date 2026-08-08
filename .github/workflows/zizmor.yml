@@ -1,6 +1,11 @@
-# Static analysis of the GitHub Actions workflows themselves (zizmor). The
-# workflow YAML is release-critical attack surface - publish-beta.yml runs on
-# every push to main with contents:write - so it is audited like any other code.
+# Static analysis of the GitHub Actions workflows themselves (zizmor). Workflow
+# YAML here is privileged code and the privilege is this tree's own rather than a
+# borrowed example: three jobs ask for a write scope - security-events in this
+# file and in code-scanning.yml, security-events and id-token in scorecard.yml -
+# most workflows run on a pull request from any branch, and several hand
+# GITHUB_TOKEN to a step that runs a tool fetched at run time. Nothing here
+# publishes a release today, so that is the surface being audited, and it is
+# audited like any other code.
 #
 # The gate runs zizmor's regular persona at --min-severity=low: it fails the
 # build on any actionable (low/medium/high/critical) security finding -
@@ -10,14 +15,16 @@
 # actionable"). The pedantic persona is deliberately NOT used to gate: it adds
 # low-severity hygiene findings (undocumented permissions, missing concurrency,
 # pin-comment mismatches, unnamed jobs) that are stylistic, not security-blocking,
-# and some are context-blind (it would demand run-cancelling concurrency on the
-# release workflows, which must never be cancelled mid-publish). That backlog is
-# tracked as a code-quality task (#263), not gated here.
+# and some are context-blind, demanding run-cancelling concurrency on jobs that
+# must not be interrupted part-way through. That backlog is not gated here, and no
+# issue on this tracker holds it.
 #
 # Rule for future workflow changes: every new or edited workflow must pass this
 # gate before merge. Keep actions SHA-pinned, keep checkout on
-# persist-credentials:false, grant write permissions per job (never
-# workflow-level), and never restore a cache in a job that publishes a release.
+# persist-credentials:false, and grant a write permission per job rather than at
+# workflow level. A job that publishes anything does not restore a cache; that one
+# is written down before such a job exists, because the moment it is being written
+# is the worst moment to be remembering it.
 name: Workflow Security Analysis
 
 on:
