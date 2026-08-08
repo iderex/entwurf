@@ -63,6 +63,11 @@ jobs:
         # first and the job stops here rather than reporting a pass it did not
         # earn. Fail closed on each of the four, and print every one of them
         # whether it passed or not, so a reader can see what was examined.
+        #
+        # bash by name. A container job's default shell here is `sh -e`, which
+        # refuses `set -o pipefail` outright, and a step whose first line the shell
+        # cannot parse fails for a reason that has nothing to do with the machine.
+        shell: bash
         run: |
           set -euo pipefail
           fail=0
