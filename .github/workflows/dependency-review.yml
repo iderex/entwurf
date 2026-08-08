@@ -31,3 +31,29 @@ jobs:
           # upgraded dependency blocks the PR. Relax only with a documented
           # reason.
           fail-on-severity: low
+          # What this repository may distribute a combined work under, given its
+          # own licence. The list is here rather than in a document because this
+          # is the copy the action reads; docs/quality/dependency-licences.md
+          # argues it and does not repeat it.
+          #
+          # Permissive, and combinable into a copyleft work without further
+          # conditions on the rest of it:
+          #   0BSD, Apache-2.0, BSD-2-Clause, BSD-3-Clause, CC0-1.0, ISC, MIT,
+          #   Unlicense, Zlib
+          # Per-file copyleft, which reaches its own files and no others, and
+          # which is also what the upstream design tool is under:
+          #   MPL-2.0
+          # Copyleft this repository's own AGPL-3.0-only can be combined with,
+          # in that direction:
+          #   LGPL-3.0-only, LGPL-3.0-or-later, GPL-3.0-only, GPL-3.0-or-later,
+          #   AGPL-3.0-only, AGPL-3.0-or-later
+          #
+          # Deliberately narrow. A licence that is absent is not thereby
+          # declared incompatible; it is a change that stops here until somebody
+          # decides, which is the direction a licence gate should fail in. The
+          # undetermined case is not refused here at all: the action prints it
+          # and passes, which docs/quality/dependency-licences.md records.
+          allow-licenses: >-
+            0BSD, Apache-2.0, BSD-2-Clause, BSD-3-Clause, CC0-1.0, ISC, MIT,
+            Unlicense, Zlib, MPL-2.0, LGPL-3.0-only, LGPL-3.0-or-later,
+            GPL-3.0-only, GPL-3.0-or-later, AGPL-3.0-only, AGPL-3.0-or-later
