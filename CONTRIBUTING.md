@@ -217,6 +217,15 @@ produces the `output` field beside it. `check:pins` compares the table against
 this tree, never against upstream, so a version that moved upstream is caught by
 a person re-running the command and not by a run.
 
+Nothing refuses a comment or an error message inside a workflow file that names a
+path this tree does not carry or an issue this tracker has not issued.
+`check:guide` reads this file and no other, and `check:invariants` judges a check
+name in tracked Markdown, so neither reaches a comment or a `run:` string in
+`.github/workflows/`. Three such pointers and one such message were repaired at
+once under issue #100 rather than one at a time, which is what an unrefused class
+looks like: they arrive together and they are found by somebody reading for a
+different reason.
+
 ## Checks that run on GitHub
 
 The workflows in `.github/workflows/` are what the server runs. The unit suite is
