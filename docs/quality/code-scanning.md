@@ -8,16 +8,21 @@ where it runs.
 
 ## What runs
 
-CodeQL, on every pull request and on every push to the default branch, under the
-check name `code-scanning`. The workflow is `.github/workflows/code-scanning.yml`.
+CodeQL, on every pull request and on every push to the default branch, from
+`.github/workflows/code-scanning.yml`. Two jobs, under two check names, asking
+two different questions.
 
-Results go to this repository's code-scanning tab rather than only into a
-workflow log, which is the point of uploading them: a finding nobody opens a log
-to read is a finding nobody has.
+`code-scanning` asks what is wrong with this repository. Its results go to the
+code-scanning tab rather than only into a workflow log, which is the point of
+uploading them: a finding nobody opens a log to read is a finding nobody has.
 
-The job id and the check name are the same string, and there is no matrix, so the
-name a rule or a reader knows does not move when a second language arrives. That
-convention is the one the unit suite and the invariants gate already use.
+`code-scanning-proof` asks whether the scanner can see this repository at all.
+That is not the same question, and the first job going green does not answer it,
+which is what the next section is about.
+
+Each job id is also its check name, and there is no matrix, so the name a rule or
+a reader knows does not move when a second language arrives. That convention is
+the one the unit suite and the invariants gate already use.
 
 ## Which languages this tree carries
 
@@ -72,7 +77,7 @@ stands in place of a scanner because a scanner is not the right instrument. What
 does judge them is narrower and is described elsewhere: `check:invariants` refuses
 a set of string facts in tracked text, and it prints its own bound on every run.
 
-## The fixture, and the alert it leaves open
+## The fixture, and how the proof is made a verdict
 
 `tests/fixtures/code-scanning/typescript/path-injection.ts` is a deliberately
 vulnerable file. A request arrives, the path it asks for is handed to the file
@@ -90,11 +95,30 @@ the sharpest form available: what the scanner finds is what its queries model, a
 a real defect written the way the first version was written would have gone past
 it in silence.
 
-It raises an alert, and the alert stays open. Closing it would mean either
-removing the fixture, which removes the proof, or dismissing it, which teaches a
-reader that a dismissed alert here is routine. An open alert with this page beside
-it is the more honest of the three, and it is the state a reader should expect to
-find.
+The fixture is excluded from the analysis that uploads, and scanned on its own by
+`code-scanning-proof`, which uploads nothing and fails when the planted
+vulnerability is not found. That arrangement was arrived at rather than designed,
+and the reason is worth having in writing.
+
+Left inside the uploaded analysis, the fixture does raise a real alert. It was
+tried that way. The alert is filed against this repository, it stays open for as
+long as the fixture exists, and it reds the code-scanning check on every pull
+request that follows, so the cost of the proof is paid by everybody who opens a
+change afterwards. Worse than the noise is what it does to the proof itself: it
+becomes a thing somebody has to go and look at. Nothing fails when it stops being
+there.
+
+Scanned separately, the same fixture answers the same question and the answer is
+a verdict. The proof job reads the result file, counts the results for the query
+that finds this, and refuses on zero, saying that a zero means the instrument is
+not reading rather than that the tree is clean. The day the scanner stops finding
+the fixture, that job goes red and says which of the three things happened.
+
+The exclusion has a cost and it is stated rather than buried. Nothing under
+`tests/fixtures/code-scanning/` is covered by the analysis that uploads, so real
+code put there would not be scanned by it. The directory holds fixtures and the
+proof job scans it, but the direction of that exclusion is worth knowing before
+somebody puts something else there.
 
 Nothing imports the fixture, no test loads it, no build includes it, and the
 server it constructs is never told to listen. The unit suite runs only the tests

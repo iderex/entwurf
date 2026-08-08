@@ -2,10 +2,11 @@
 //
 // It exists because a scanner that reaches nothing and a scanner that reaches
 // everything and finds nothing print the same green tick. This file is the
-// difference between the two: the code-scanning workflow is only evidence about
-// this repository once something in this repository has been caught by it, and
-// the alert this file raises is that evidence. docs/quality/code-scanning.md is
-// where the alert is named and where its remaining open is explained.
+// difference between the two, and the proof job in
+// .github/workflows/code-scanning.yml is what turns it into a verdict: that job
+// scans this directory on its own, uploads nothing, and fails when the
+// vulnerability below is not found. docs/quality/code-scanning.md is where the
+// arrangement is argued, including what it costs.
 //
 // The vulnerability is the ordinary one. A request arrives, the path it asks for
 // is handed to the file system exactly as it was received, and nothing resolves

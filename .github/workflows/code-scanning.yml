@@ -1,20 +1,35 @@
-# Code scanning over the code this tree actually carries. CodeQL is the scanner,
-# and TypeScript is the only language it has anything to read here: every tracked
-# source file in this repository is TypeScript, which the languages check prints
-# on every run.
+# Code scanning over the code this tree actually carries, and the proof that the
+# scanner is reaching it.
+#
+# CodeQL is the scanner, and TypeScript is the only language it has anything to
+# read here: every tracked source file in this repository is TypeScript, which the
+# languages check prints on every run.
+#
+# There are two jobs and they are two different questions. The first asks what is
+# wrong with this repository and puts the answer where a reader looks. The second
+# asks whether the scanner can see this repository at all, which is not the same
+# question and is not answered by the first going green: a scanner that reaches
+# nothing prints exactly what a scanner that reached everything and found nothing
+# prints.
+#
+# The second job is why the fixture is excluded from the first. Left in, the
+# planted vulnerability would raise a real alert that stays open forever and reds
+# the code-scanning check on every pull request that follows, and the proof would
+# be a thing somebody has to go and read rather than a thing that fails. Scanned
+# separately with nothing uploaded, the same fixture makes the proof a verdict:
+# the day the scanner stops finding it, this workflow goes red and says so.
 #
 # What stands in place of a scanner for everything else is written in
 # docs/quality/code-scanning.md, one entry per language, including the entries
-# where the honest answer is that nothing does. That document is the half of this
-# gate a workflow cannot carry, because an absence is not something a run can
-# print.
+# where the honest answer is that nothing does. That document is the half a
+# workflow cannot carry, because an absence is not something a run can print.
 #
-# The job id and the check name are the same string, on the convention the unit
-# suite and the invariants gate already follow: the check run takes its name from
-# `name:` where one is set and from the job id otherwise, so a rule naming either
-# one keeps matching. There is deliberately no matrix. A matrix appends its value
-# to the check name, so the name every rule and every reader knows would move on
-# the day a second language arrives, which is the opposite of a stable name.
+# Each job id is also its check name, on the convention the unit suite and the
+# invariants gate already follow: the check run takes its name from `name:` where
+# one is set and from the job id otherwise, so a rule naming either one keeps
+# matching. There is deliberately no matrix, because a matrix appends its value to
+# the check name and the name every rule and every reader knows would move on the
+# day a second language arrives.
 name: code-scanning
 
 on:
@@ -23,11 +38,9 @@ on:
   push:
     branches: [main]
 
-# Deny by default; the job below grants only the scopes it needs.
+# Deny by default; each job below grants only what it needs.
 permissions: {}
 
-# Cancel a superseded run on the same ref. This is an analysis rather than a
-# publish, so dropping an obsolete run is safe.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -66,7 +79,8 @@ jobs:
           echo "paths offered to the scanner:"
           echo "$paths" | sed 's/^/  /'
           echo "count: $(echo "$paths" | grep -c . || true)"
-          echo "tracked paths in total: $(git ls-files | grep -c . || true)"
+          echo "excluded from this job and scanned by the proof job instead:"
+          echo "  tests/fixtures/code-scanning"
 
       - name: Initialise the scanner
         uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
@@ -77,10 +91,69 @@ jobs:
           languages: javascript-typescript
           # Nothing here is compiled to produce the database, so no build runs.
           build-mode: none
-
+          config: |
+            paths-ignore:
+              - tests/fixtures/code-scanning
       - name: Analyse and upload the results
         uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
         with:
           # A category of its own, so this analysis does not overwrite the two
           # that already upload here under their own names.
           category: code-scanning
+
+  code-scanning-proof:
+    name: code-scanning-proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      # Read the tree. Nothing is uploaded from this job, so it needs no scope
+      # for writing security events, and the analysis below is told not to try.
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialise the scanner over the fixture alone
+        uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          config: |
+            paths:
+              - tests/fixtures/code-scanning
+      - name: Analyse the fixture without uploading anything
+        uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
+        with:
+          output: sarif-results
+          # Nothing reaches the code-scanning tab from here. The planted
+          # vulnerability is not a finding about this repository and must not be
+          # filed as one; what it is evidence about is the scanner.
+          upload: never
+          upload-database: false
+
+      - name: Refuse a scanner that did not find the planted vulnerability
+        # The whole point of the job. A zero here does not mean the tree is
+        # clean, it means the instrument is not reading, and the two must never
+        # print the same thing.
+        run: |
+          set -euo pipefail
+          rule="js/path-injection"
+          total=0
+          shopt -s nullglob
+          files=(sarif-results/*.sarif)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::The analysis wrote no result file, so nothing here can say whether the scanner read the fixture."
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            count=$(jq --arg rule "$rule" '[.runs[].results[]? | select(.ruleId == $rule)] | length' "$file")
+            echo "$file: $count result(s) for $rule"
+            total=$((total + count))
+          done
+          if [ "$total" -eq 0 ]; then
+            echo "::error::The scanner did not find the deliberate vulnerability in tests/fixtures/code-scanning. Either the fixture stopped being vulnerable, or the query that finds it stopped running, or the scanner is no longer reading this repository. Until this is understood, the green tick on the other job means nothing."
+            exit 1
+          fi
+          echo "The scanner found the planted vulnerability: $total result(s) for $rule."
