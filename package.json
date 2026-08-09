@@ -9,7 +9,7 @@
   },
   "scripts": {
     "bom": "node tools/src/check-bill-of-materials.ts --write",
-    "check": "node tools/src/check-toolchain-pins.ts && node tools/src/check-languages.ts && node tools/src/check-guide.ts && node tools/src/check-docs.ts && node tools/src/check-invariants.ts && node tools/src/check-assets.ts && node tools/src/check-source-headers.ts && tsc --noEmit --project tools/tsconfig.json && node tools/src/check-lockfile-drift.ts && node tools/src/check-bill-of-materials.ts",
+    "check": "node tools/src/check-toolchain-pins.ts && node tools/src/check-languages.ts && node tools/src/check-guide.ts && node tools/src/check-docs.ts && node tools/src/check-invariants.ts && node tools/src/check-assets.ts && node tools/src/check-source-headers.ts && tsc --noEmit --project tools/tsconfig.json && node tools/src/check-lockfile-drift.ts && node tools/src/check-bill-of-materials.ts && node tools/src/check-notices.ts",
     "check:assets": "node tools/src/check-assets.ts",
     "check:bom": "node tools/src/check-bill-of-materials.ts",
     "check:docs": "node tools/src/check-docs.ts",
@@ -18,9 +18,11 @@
     "check:invariants": "node tools/src/check-invariants.ts",
     "check:languages": "node tools/src/check-languages.ts",
     "check:locks": "node tools/src/check-lockfile-drift.ts",
+    "check:notices": "node tools/src/check-notices.ts",
     "check:pins": "node tools/src/check-toolchain-pins.ts",
     "check:types": "tsc --noEmit --project tools/tsconfig.json",
     "headers": "node tools/src/check-source-headers.ts --write",
+    "notices": "node tools/src/check-notices.ts --write",
     "test": "vitest run --config tools/vitest.config.ts --coverage",
     "test:needs-display-and-gpu": "node tools/src/run-hardware-suite.ts",
     "upstream:revision": "node tools/src/print-upstream-revision.ts"
