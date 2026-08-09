@@ -8,6 +8,13 @@ document exists as its own file rather than as a paragraph in the contributor
 guide: it is the part a contributor has to be told before they write the code,
 not after somebody has decided to send it somewhere else.
 
+What this project declines to build is on its own page,
+[`docs/not-for.md`](../not-for.md), and it belongs beside these terms rather than
+only in the readme. It names the proposals that will not be accepted here and the
+reason for each, and it says what the project does not promise. Reading it before
+you write is the cheapest way to find out that a change was never going to land,
+and finding that out afterwards is the expensive way.
+
 ## The licence your contribution is made under
 
 AGPL-3.0-only, the licence of this repository. The full text is in
