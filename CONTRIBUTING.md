@@ -162,6 +162,7 @@ Each one is a script in `package.json`, and running all of them is
     corepack pnpm run check:pins
     corepack pnpm run check:languages
     corepack pnpm run check:guide
+    corepack pnpm run check:docs
     corepack pnpm run check:invariants
     corepack pnpm run check:assets
     corepack pnpm run check:headers
@@ -187,6 +188,33 @@ tracked nor written by one of these runs, or a script `package.json` does not
 define. It reads backticked spans and `corepack pnpm run` commands, and it judges
 no other sentence here: whether anything else written in this guide is true is
 not something a run can decide.
+
+`check:docs` judges every tracked Markdown document the way `check:guide` judges
+this one, and two things about the decision records besides. It refuses a
+backticked path that is neither tracked, written by one of these runs, nor
+declared in the register of paths this tree intends to carry and does not carry
+yet; it refuses a link whose target is not in this tree, and an anchor no heading
+in the target document carries; and it refuses a decision record whose file name,
+heading or two header lines depart from the convention
+`docs/decisions/0001-means.md` states, or whose number a second record also
+claims. The rules are a table in `tools/src/checks/docs.ts`, and the run prints
+every one of them with the failure it prevents and the bound on what it reaches,
+so a green run is a statement about those five rules rather than about the
+documents.
+
+Three of those bounds are worth having in front of a reader here. It reads
+Markdown, so a path named in a comment inside a workflow file is not reached: the
+paths written there carry no backticks, and a bare-word extractor over prose
+refuses ordinary sentences. It does not fetch a link to another host, so nothing
+it says bears on whether one still answers. And on a decision record it judges
+the form and never the sense: whether the heading describes the decision the
+record makes, and whether a number written in the body of a record is the record
+meant, are judgements no reading of the tree makes.
+
+The register of planned paths fails closed in both directions. An entry naming a
+path the tree has since acquired is refused as stale, so it cannot outlive the
+absence it describes, and a path nobody wrote down is refused as an unresolved
+path rather than passed.
 
 `check:invariants` refuses a tracked text file that violates one of the string
 facts this tree holds: a credential shape, a path under somebody's home
@@ -259,10 +287,6 @@ Nothing refuses a claim made without the command that produced it, in an issue,
 in a pull request body, in a commit message or in a document, and that is the
 rule this project leans on hardest.
 
-Nothing refuses a decision record whose numbering or heading departs from the
-convention `docs/decisions/0001-means.md` sets out, and nothing refuses two
-records that claim the same number.
-
 Nothing refuses a change that lands without an issue, and nothing reads what an
 issue said "done" would mean.
 
@@ -273,9 +297,9 @@ a person re-running the command and not by a run.
 
 Nothing refuses a comment or an error message inside a workflow file that names a
 path this tree does not carry or an issue this tracker has not issued.
-`check:guide` reads this file and no other, and `check:invariants` judges a check
-name in tracked Markdown, so neither reaches a comment or a `run:` string in
-`.github/workflows/`. Three such pointers and one such message were repaired at
+`check:guide` reads this file and no other, `check:docs` and `check:invariants`
+judge tracked Markdown, so none of the three reaches a comment or a `run:` string
+in `.github/workflows/`. Three such pointers and one such message were repaired at
 once under issue #100 rather than one at a time, which is what an unrefused class
 looks like: they arrive together and they are found by somebody reading for a
 different reason.
@@ -285,9 +309,9 @@ different reason.
 The workflows in `.github/workflows/` are what the server runs. The unit suite is
 among them, under the name `unit-suite`, and the job id and the check name are
 the same string so that a rule naming either one keeps matching.
-`check:invariants` is among them too, under the name `invariants`, and
-`check:headers` under the name `source-headers`, both on the same convention and
-for the same reason.
+`check:invariants` is among them too, under the name `invariants`,
+`check:headers` under the name `source-headers`, and `check:docs` under the name
+`document-lint`, all on the same convention and for the same reason.
 
 The other `check:` scripts are not among them. Issue #8 is where a check gets a
 stable name and is put in front of the default branch, and until that lands,

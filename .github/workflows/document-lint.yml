@@ -1,0 +1,57 @@
+# The documents, judged the way the code is judged. A paragraph naming a file
+# that moved goes on reading like an instruction until somebody follows it, which
+# is a defect that costs a reader an hour and costs the author nothing to notice.
+# It runs on every change because a document rots between changes rather than
+# during one, and a check that runs when somebody remembers is a rule nothing
+# refuses.
+#
+# What it does not reach is printed by the run itself, one line per rule, beside
+# the failure that rule prevents. A green run here is a statement about paths,
+# links and the decision-record convention, and about nothing else any document
+# says.
+name: document-lint
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: [main]
+
+# Read-only: the check reads tracked files and sets an exit status. It never
+# repairs a document, because a gate that quietly corrected the tree would hide
+# the thing it exists to report.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The job id and the check name are the same string, for the reason the unit
+  # suite gives: the check run takes its name from `name:` where one is set and
+  # from the job id otherwise, so a rule naming either one keeps matching.
+  document-lint:
+    name: document-lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The check asks git which paths are tracked and which of the ones the
+          # documents name are ignored, so it needs the checkout to be a
+          # repository. It never pushes, so the token is not persisted.
+          persist-credentials: false
+
+      - name: Install the pinned Node runtime
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+
+      - name: Refuse a document that names something this tree does not carry
+        # No install step: the check imports only Node builtins and files in this
+        # tree, so it needs no dependency and no network.
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: corepack pnpm run check:docs

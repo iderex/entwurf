@@ -9,9 +9,10 @@
   },
   "scripts": {
     "bom": "node tools/src/check-bill-of-materials.ts --write",
-    "check": "node tools/src/check-toolchain-pins.ts && node tools/src/check-languages.ts && node tools/src/check-guide.ts && node tools/src/check-invariants.ts && node tools/src/check-assets.ts && node tools/src/check-source-headers.ts && tsc --noEmit --project tools/tsconfig.json && node tools/src/check-lockfile-drift.ts && node tools/src/check-bill-of-materials.ts",
+    "check": "node tools/src/check-toolchain-pins.ts && node tools/src/check-languages.ts && node tools/src/check-guide.ts && node tools/src/check-docs.ts && node tools/src/check-invariants.ts && node tools/src/check-assets.ts && node tools/src/check-source-headers.ts && tsc --noEmit --project tools/tsconfig.json && node tools/src/check-lockfile-drift.ts && node tools/src/check-bill-of-materials.ts",
     "check:assets": "node tools/src/check-assets.ts",
     "check:bom": "node tools/src/check-bill-of-materials.ts",
+    "check:docs": "node tools/src/check-docs.ts",
     "check:guide": "node tools/src/check-guide.ts",
     "check:headers": "node tools/src/check-source-headers.ts",
     "check:invariants": "node tools/src/check-invariants.ts",
