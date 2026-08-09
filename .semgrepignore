@@ -1,0 +1,21 @@
+# What the second analyser does not read, and the whole of it.
+#
+# This file exists because the tool has a default list when there is none, and
+# that list skips tests/ and fixtures/ among others. Under it, the scan of this
+# repository read zero of the three fixture files that prove the rules bite and
+# printed a green summary saying so. A gate that is green because it read nothing
+# is the failure the fixtures exist against, so the default is replaced here
+# rather than argued with.
+#
+# The file name is the tool's, which is Opengrep's ancestor's rather than
+# Opengrep's own. The name is what the binary looks for; renaming it would mean
+# the list below silently stops applying and the default comes back.
+#
+# tools/opengrep/rules.yml holds the rules, and .github/workflows/second-analyser.yml
+# is where the scan runs. What the gate excludes beyond this list is one path
+# given on the command line there, the fixtures, which the proof job scans on its
+# own instead.
+
+# Installed dependencies. Not this repository's code, and scanning them would
+# report somebody else's tree as this project's findings.
+node_modules/

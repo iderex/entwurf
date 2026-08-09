@@ -1,0 +1,101 @@
+# The rule set the second analyser runs, held here rather than fetched.
+#
+# A registry rule set is a moving target: the same commit scanned twice can give
+# two answers, and neither run says which rules it used. Every rule below is in
+# the tree, reviewed like the rest of the tree, and the scan runs offline against
+# this file alone.
+#
+# Each rule carries the failure it prevents and the bound on what it reaches.
+# Where a rule is switched off, the reason and what would switch it back on go
+# beside it, in this file, rather than in a workflow argument nobody reads. No
+# rule is switched off today.
+#
+# docs/quality/code-scanning.md is where this analyser's lens is argued against
+# the first one's, and where the languages it does not reach are named.
+
+rules:
+  # -------------------------------------------------------------------------
+  - id: request-path-into-filesystem
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      A path taken from an HTTP request reaches the file system without being
+      resolved against a root first, so ../../ walks wherever the process can
+      read. Resolve the request value against a fixed root and refuse the result
+      if it leaves that root, rather than handing it to node:fs as it arrived.
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          # The request line itself.
+          - pattern: $REQUEST.url
+          # A value read out of the query string. This is the indirection the
+          # first analyser was measured not to follow, which is why the rule
+          # names it separately rather than relying on the flow being traced
+          # back to the request.
+          - pattern: $URL.searchParams.get(...)
+    pattern-sinks:
+      - pattern-either:
+          - pattern: readFile(...)
+          - pattern: readFileSync(...)
+          - pattern: createReadStream(...)
+          - pattern: writeFile(...)
+          - pattern: writeFileSync(...)
+          - pattern: appendFile(...)
+          - pattern: appendFileSync(...)
+          - pattern: unlink(...)
+          - pattern: unlinkSync(...)
+    metadata:
+      bound: >-
+        Intraprocedural. A request value handed to a helper in another function
+        and read from the file system there is not followed by this rule.
+      fixture: tests/fixtures/second-analyser/typescript/query-string-path.ts
+
+  # -------------------------------------------------------------------------
+  - id: child-process-with-a-shell
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      A child process is started through a shell, so the arguments are parsed by
+      the shell before the program sees them and a value that reaches them
+      carries shell syntax with it. Spawn the executable directly with an
+      argument array, or state at the call site why the shell is needed and what
+      would remove it.
+    patterns:
+      - pattern-either:
+          - pattern: "spawn(..., {..., shell: true, ...})"
+          - pattern: "spawnSync(..., {..., shell: true, ...})"
+          - pattern: "execFile(..., {..., shell: true, ...})"
+          - pattern: "execFileSync(..., {..., shell: true, ...})"
+          - pattern: exec(...)
+          - pattern: execSync(...)
+    metadata:
+      bound: >-
+        Syntactic. It reads the option written at the call site, so a shell
+        turned on through a variable or a spread object is not seen.
+      fixture: tests/fixtures/second-analyser/typescript/shell-command.ts
+
+  # -------------------------------------------------------------------------
+  - id: runtime-require-in-the-test-suites
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      A module pulled in at runtime through node:module does not pass through
+      the import resolution the headless rule refuses browser drivers at, so a
+      test loading a driver this way runs it and reports green. Import the module
+      normally, or put the test in the hardware-bound suite where a driver is
+      allowed.
+    patterns:
+      - pattern-either:
+          - pattern: createRequire(...)
+          - pattern: $MODULE.createRequire(...)
+    paths:
+      include:
+        - tests/unit/**
+        - tests/fixtures/second-analyser/**
+    metadata:
+      bound: >-
+        It reaches the call rather than the name, so a require built some other
+        way is not seen. What it does reach that a token search does not is the
+        difference between a call and the same word inside a comment or a
+        string, which is what the fixture holds.
+      fixture: tests/fixtures/second-analyser/typescript/runtime-require.ts
