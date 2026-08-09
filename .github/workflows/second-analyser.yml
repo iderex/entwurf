@@ -1,0 +1,198 @@
+# The second analyser, and the proof that it is a second lens rather than a
+# second copy of the first one.
+#
+# One tool's blind spot is not visible from inside that tool. CodeQL builds a
+# database and asks dataflow questions of it; this one matches the syntax as
+# written and follows taint inside a function. The two disagree, and the
+# disagreement is measured here rather than asserted in a document: the proof job
+# below holds one file that the second analyser refuses and the first one does
+# not, and it fails in both directions - when the second stops finding it, and
+# when the first starts. On that second day the fixture has stopped proving what
+# it was written for, and the sentence in the document would be stale rather than
+# loud.
+#
+# The rule set is tools/opengrep/rules.yml and it is read from the tree. Nothing
+# is fetched from a registry, so the same commit scanned twice gives the same
+# answer and every rule that ran is a rule somebody reviewed.
+#
+# Supply chain. Opengrep publishes no action and no image, so the release binary
+# is pinned by version and by SHA-256 and the checksum is verified before it is
+# run. Bump the two together; a version moved without its checksum fails closed.
+#
+# Each job id is also its check name, on the convention the unit suite, the
+# invariants gate and the code scanning gate already follow. There is no matrix,
+# so the name a rule or a reader knows does not move.
+#
+# docs/quality/code-scanning.md is where the lens difference is argued and where
+# the languages this analyser does not reach are named, beside the first
+# analyser's gaps rather than on a page of their own.
+name: second-analyser
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: [main]
+
+# Deny by default; each job grants only what it needs.
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned release of opengrep/opengrep. The checksum is of the
+  # opengrep_manylinux_x86 asset for this exact tag and is what makes the
+  # download tamper-evident.
+  OPENGREP_VERSION: "v1.26.0"
+  OPENGREP_SHA256: "40c21299eeddabf743b856daa843d24f9d4a027130671cd45b3b21776fd9ab26"
+  RULES: tools/opengrep/rules.yml
+
+jobs:
+  second-analyser:
+    name: second-analyser
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      # Read the tree that is scanned. The rule set is local and the scan is
+      # offline, so nothing else is needed.
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Nothing here pushes, so the token is not persisted into .git/config.
+          persist-credentials: false
+
+      - name: Install the analyser at the pinned version
+        run: |
+          set -euo pipefail
+          url="https://github.com/opengrep/opengrep/releases/download/${OPENGREP_VERSION}/opengrep_manylinux_x86"
+          # --proto '=https' --tlsv1.2 refuse any non-HTTPS transport, including
+          # on a redirect, so the download cannot be downgraded to plaintext.
+          curl -fSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 -o opengrep "$url"
+          echo "${OPENGREP_SHA256}  opengrep" | sha256sum -c -
+          chmod +x opengrep
+          ./opengrep --version
+
+      - name: Say what this run reads and what it does not
+        # The bound, printed rather than left to be inferred. A tool with a
+        # default ignore list skips tests/ and fixtures/ without saying so, which
+        # would have made this gate green over the directories it most needs to
+        # read. .semgrepignore at the root is what replaces that list, and it is
+        # short on purpose.
+        run: |
+          set -euo pipefail
+          echo "rule set:"
+          grep -n "^  - id:" "$RULES" | sed 's/^/  /'
+          echo "ignore list in force (.semgrepignore at the root, replacing the tool's default):"
+          sed 's/^/  /' .semgrepignore
+          echo "excluded from this job and scanned by the proof job instead:"
+          echo "  tests/fixtures"
+
+      - name: Refuse a finding
+        # --error turns a finding into a non-zero exit, which is what makes this
+        # a gate rather than a report. Findings do not accumulate: the gate is
+        # red until each one is repaired or accepted at its call site with the
+        # reason and what would retire it, which is the arrangement
+        # docs/quality/code-scanning.md describes and tools/src/check-lockfile-drift.ts
+        # is the one live instance of.
+        run: ./opengrep scan --config "$RULES" --exclude tests/fixtures --error .
+
+  second-analyser-proof:
+    name: second-analyser-proof
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      # Read the tree. Nothing is uploaded from this job, and the analysis below
+      # is told not to try.
+      contents: read
+    env:
+      # On a pull request the CodeQL action reports only results inside the
+      # changed ranges. This job asserts a count of zero over a file no pull
+      # request touches, and with the filter on that zero would be produced by
+      # the filter rather than by the scanner - the assertion would pass for the
+      # wrong reason and keep passing after it stopped being true. The same
+      # setting is on the other proof job in this repository, for the mirror
+      # image of this reason.
+      CODEQL_ACTION_DIFF_INFORMED_QUERIES: "false"
+      FIXTURES: tests/fixtures/second-analyser
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install the analyser at the pinned version
+        run: |
+          set -euo pipefail
+          url="https://github.com/opengrep/opengrep/releases/download/${OPENGREP_VERSION}/opengrep_manylinux_x86"
+          curl -fSL --proto '=https' --tlsv1.2 --retry 3 --retry-delay 2 -o opengrep "$url"
+          echo "${OPENGREP_SHA256}  opengrep" | sha256sum -c -
+          chmod +x opengrep
+
+      - name: Refuse a rule that no longer bites, and one that bites too widely
+        # Exactly one per rule, never at least one. Each fixture file carries the
+        # defect and the near miss one line apart - the same spawn without the
+        # shell option, the same word in a comment and in a string - so a count
+        # of two is a rule that stopped telling them apart and a count of zero is
+        # a rule that stopped reading. Neither may print what a healthy run
+        # prints.
+        run: |
+          set -euo pipefail
+          ./opengrep scan --config "$RULES" --json --quiet "$FIXTURES" > findings.json
+          failed=0
+          for rule in request-path-into-filesystem child-process-with-a-shell runtime-require-in-the-test-suites; do
+            id="tools.opengrep.${rule}"
+            count=$(jq --arg id "$id" '[.results[] | select(.check_id == $id)] | length' findings.json)
+            echo "${rule}: ${count} finding(s) in ${FIXTURES}"
+            if [ "$count" -ne 1 ]; then
+              echo "::error::${rule} produced ${count} finding(s) in ${FIXTURES} and exactly 1 is the healthy count. Zero means the rule stopped reaching the defect the fixture holds, so a green gate elsewhere means nothing for that rule. More than one means it also matched the near miss beside it, so the gate is refusing correct code. The rule and its fixture are named together in ${RULES}."
+              failed=1
+            fi
+          done
+          [ "$failed" -eq 0 ]
+
+      - name: Initialise the first analyser over the same fixture
+        uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          config: |
+            paths:
+              - tests/fixtures/second-analyser
+      - name: Analyse it without uploading anything
+        uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
+        with:
+          output: sarif-results
+          # Nothing reaches the code-scanning tab from here. What this analysis
+          # is evidence about is the instrument rather than the repository.
+          upload: never
+          upload-database: false
+
+      - name: Refuse a lens claim that has stopped being true
+        # The other half of the proof, and the half that is easy to leave out. A
+        # second analyser is only worth its minutes if it sees something the
+        # first one does not, and that is a claim about two tools on one day
+        # rather than a fact about either. This step measures it on every run.
+        run: |
+          set -euo pipefail
+          rule="js/path-injection"
+          total=0
+          shopt -s nullglob
+          files=(sarif-results/*.sarif)
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "::error::The first analyser wrote no result file, so nothing here can say what it saw in ${FIXTURES}."
+            exit 1
+          fi
+          for file in "${files[@]}"; do
+            count=$(jq --arg rule "$rule" '[.runs[].results[]? | select(.ruleId == $rule)] | length' "$file")
+            echo "$file: $count result(s) for $rule"
+            total=$((total + count))
+          done
+          if [ "$total" -ne 0 ]; then
+            echo "::error::The first analyser found ${total} result(s) for ${rule} in ${FIXTURES}, and this job asserts zero. That is not a defect in the tree and it is not a failure of either tool: it means the first analyser now follows the flow this fixture was chosen for, so the fixture no longer demonstrates that the two lenses differ. Repair it by choosing a shape the first analyser still does not follow, and by correcting the paragraph in docs/quality/code-scanning.md that this count is the evidence for. Do not delete the assertion."
+            exit 1
+          fi
+          echo "The first analyser found 0 result(s) for $rule in ${FIXTURES}, and the step above counted 1 for the rule that judges the same file. The two lenses still differ, measured on this run rather than quoted from an earlier one."

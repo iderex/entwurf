@@ -19,6 +19,13 @@
 # separately with nothing uploaded, the same fixture makes the proof a verdict:
 # the day the scanner stops finding it, this workflow goes red and says so.
 #
+# tests/fixtures/second-analyser is excluded from the uploading job for the same
+# reason and not for the same finding. Nothing there raises an alert here today,
+# which is the thing the proof job in .github/workflows/second-analyser.yml
+# asserts on every run. The exclusion is what stops the day that changes from
+# being a permanent alert against this repository instead of a red assertion
+# saying the fixture has stopped proving what it was written for.
+#
 # What stands in place of a scanner for everything else is written in
 # docs/quality/code-scanning.md, one entry per language, including the entries
 # where the honest answer is that nothing does. That document is the half a
@@ -79,8 +86,9 @@ jobs:
           echo "paths offered to the scanner:"
           echo "$paths" | sed 's/^/  /'
           echo "count: $(echo "$paths" | grep -c . || true)"
-          echo "excluded from this job and scanned by the proof job instead:"
+          echo "excluded from this job and scanned by a proof job instead:"
           echo "  tests/fixtures/code-scanning"
+          echo "  tests/fixtures/second-analyser"
 
       - name: Initialise the scanner
         uses: github/codeql-action/init@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
@@ -94,6 +102,7 @@ jobs:
           config: |
             paths-ignore:
               - tests/fixtures/code-scanning
+              - tests/fixtures/second-analyser
       - name: Analyse and upload the results
         uses: github/codeql-action/analyze@e4fba868fa4b1b91e1fdab776edc8cfbe6e9fb81 # v4.37.3
         with:

@@ -184,6 +184,132 @@ reports rather than refuses.
 **It finds what its queries look for and nothing else.** A clean run is a
 statement about the query set that ran, not about the code being free of defects.
 
-**It is one lens.** Issue #74 is where a second analyser with a different lens is
-added, on the argument that one tool's blind spot is not visible from inside that
-tool.
+**It is one lens.** One tool's blind spot is not visible from inside that tool.
+There is a second analyser now, and the rest of this page is about it.
+
+## The second analyser
+
+Opengrep, on every pull request and on every push to the default branch, from
+`.github/workflows/second-analyser.yml`. Two jobs again, under two check names,
+asking two different questions: `second-analyser` asks what is wrong with this
+repository, and `second-analyser-proof` asks whether the two analysers still
+disagree about anything.
+
+### How the lens differs
+
+CodeQL compiles the tree into a database and asks dataflow questions of it.
+Opengrep matches the syntax as it is written, and follows taint inside a single
+function. Neither is the better instrument. They fail differently, which is the
+whole reason for running both:
+
+- A flow the first one's model does not connect is invisible to it however
+  obvious it looks in the source. That is not a hypothetical here. The fixture
+  under `tests/fixtures/code-scanning/` had to have its indirection removed
+  before the first analyser would follow it, and the paragraph above about that
+  correction is the measurement.
+- A shape the second one is not written to match is invisible to it, because it
+  matches what its rules say and infers nothing. Its rule set is three rules
+  written in this repository; the first analyser brings a query suite maintained
+  somewhere else.
+
+So the second analyser is narrow and literal where the first is broad and
+inferential, and each finds a class the other passes over.
+
+It is also not the greppable-invariants gate, which is worth saying because in
+the gate this project takes as its target one workflow plays both roles. Here
+they are two checks with two rule sets, and they differ in kind rather than in
+configuration. `check:invariants` judges string facts in tracked text and cannot
+tell a token in a comment from the same token in code. This one reads syntax and
+can. `tests/fixtures/second-analyser/typescript/runtime-require.ts` is where the
+difference is held: the word appears three times in that file, once as a call and
+twice as prose, and the rule refuses one of the three.
+
+### The rule set
+
+`tools/opengrep/rules.yml`, read from the tree. Nothing is fetched from a
+registry, so the same commit scanned twice gives the same answer and every rule
+that ran is a rule somebody reviewed. Three rules today, each with the failure it
+prevents and the bound on what it reaches written beside it, and each naming the
+fixture that proves it bites.
+
+No rule is switched off. The file says so, and it says where the reason goes when
+one is: beside the rule, in that file, rather than in a workflow argument nobody
+reads.
+
+The scan reads what `.semgrepignore` at the root leaves it, and that file is
+short and deliberate. Without it the tool falls back to a default ignore list
+that skips `tests/` and fixture directories, and under that default this scan
+read zero of the three fixture files and printed a green summary saying so. A
+gate that is green because it read nothing is the failure the fixtures exist
+against.
+
+### The proof, and why it fails in two directions
+
+`second-analyser-proof` scans the fixture directory on its own, uploads nothing,
+and asserts a count of exactly one per rule. Exactly one rather than at least
+one, because two of the three fixture files carry the defect and its near miss a
+line or two apart: the same spawn with and without the shell option, the same
+word as a call and as prose. A zero is a rule that has stopped reaching its
+defect, so a green gate elsewhere means nothing for that rule. A two is a rule
+that has started refusing correct code.
+
+The third file's near miss is in the other fixture directory rather than beside
+it. The two hold the same defect one indirection apart, and which of the two each
+analyser follows is the difference this page is about.
+
+The same job then runs the first analyser over the same directory and asserts it
+finds nothing there. That is the half that is easy to leave out, and without it
+the claim at the top of this section is an anecdote about a run in the past
+rather than a measurement on this one. If the first analyser ever does follow
+that flow, the job goes red and says what it means: not a defect in the tree and
+not a failure of either tool, but a fixture that has stopped demonstrating the
+difference, and a paragraph here that has to be corrected rather than an
+assertion that has to be deleted.
+
+That is why `tests/fixtures/second-analyser/` is excluded from the analysis that
+uploads, in the same way and for a different finding than the other fixture
+directory. Nothing there raises an alert today. The exclusion is what stops the
+day that changes from becoming a permanent alert against this repository instead
+of a red assertion.
+
+### Triage
+
+Findings do not accumulate, because the gate refuses on any finding at all. Each
+one is either repaired or accepted at the call site, with the reason and what
+would retire it written there rather than in a register somewhere else, and the
+acceptance names the single rule it accepts rather than switching the line off.
+
+There is one accepted finding today. `tools/src/check-lockfile-drift.ts` starts a
+child process through a shell in the branch that has a bare program name and no
+path to it. The name and every argument are literals, so nothing a caller
+supplies reaches the command line; what retires it is resolving the executable in
+that file, or the branch going away. Removing that one comment line and running
+the gate is what proves the gate is a gate: it exits non-zero and names the line.
+
+### What this analyser does not reach
+
+**Languages.** The same three absences as the first analyser, for a different
+reason. Every tracked source file here is TypeScript, which the languages check
+counts on every run. Clojure and ClojureScript are named in the toolchain table
+because it records the upstream project's toolchain, and no tracked file is
+written in either; Opengrep can parse them, so the repair on the day one arrives
+is a rule that names the language rather than an absence to accept. Rust is the
+same. Markdown, JSON, YAML and the ignore file are not code and are not scanned
+here either.
+
+**Workflows.** Not scanned by this one, and the audit in
+`.github/workflows/zizmor.yml` still stands in its place, exactly as it does for
+the first analyser.
+
+**Anything its rules do not name.** Three rules is three rules. A clean run says
+those three shapes are absent from the files it read, and it says nothing else. A
+broader rule set is the way that changes; a green tick is not.
+
+**One function at a time.** The taint rule follows a value inside the function it
+appears in. A request value handed to a helper and read from the file system
+there is not followed, and that is the class the first analyser is the better
+instrument for.
+
+**It does not fail the build either.** No ruleset on the default branch requires
+any check today, so this gate reports rather than refuses until #8 lands, the
+same as everything else here.
