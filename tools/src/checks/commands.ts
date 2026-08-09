@@ -167,6 +167,9 @@ export function decide(files: readonly TextFile[]): Decision {
 export function checkCommands(
   files: readonly TextFile[],
   failures: readonly { path: string; line: number; command: string; detail: string }[] = [],
+  // Commands the machine this ran on could not start at all, which is a different
+  // statement from a command that ran and failed and may not be reported as one.
+  notStarted: readonly { command: string; reason: string }[] = [],
 ): Report {
   const decision = decide(files);
   const judged = files.filter((file) => isFollowedDocument(file.path));
@@ -177,6 +180,16 @@ export function checkCommands(
     ...decision.notRun.map((block) => `NOT run, ${block.reason}: ${block.path}:${block.line}.`),
     "whether a reason given for not running a block is true is not judged here, and neither is whether the output pasted under a command is what it produces today.",
   ];
+
+  // A run that started fewer commands than it was given has to be unreadable as
+  // one that started them all and found nothing wrong.
+  if (notStarted.length > 0) {
+    lines.push(
+      `${notStarted.length} of those command(s) were NOT started on this machine, so this run says nothing about them: ${[
+        ...new Set(notStarted.map((skipped) => skipped.reason)),
+      ].join("; ")}. They are started where the checks run.`,
+    );
+  }
 
   return {
     lines,

@@ -139,6 +139,24 @@ describe("what the run says about itself", () => {
     );
   });
 
+  // A machine that could not start a command is not a machine that ran it. The
+  // distinction is the whole reason the line exists: without it a run on a
+  // platform where nothing started reads exactly like a run where everything
+  // passed.
+  test("says how many commands it could not start, and why, without refusing them", () => {
+    const document = guide("<!-- run -->", "", "    one", "");
+    const report = checkCommands([document], [], [{ command: "one", reason: "the machine cannot start it" }]);
+    expect(passed(report)).toBe(true);
+    expect(report.lines.at(-1)).toBe(
+      "1 of those command(s) were NOT started on this machine, so this run says nothing about them: the machine cannot start it. They are started where the checks run.",
+    );
+  });
+
+  test("a run that started everything does not print that line at all", () => {
+    const report = checkCommands([guide("<!-- run -->", "", "    one", "")]);
+    expect(report.lines.some((line) => line.includes("NOT started"))).toBe(false);
+  });
+
   test("a command that failed is refused, naming the block, the command and what it said", () => {
     const document = guide("<!-- run -->", "", "    one", "");
     const report = checkCommands([document], [
