@@ -9,7 +9,14 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadPackageJson, repoRoot } from "./pins.ts";
-import { checkInvariants, declaredCheckNames, type TextFile } from "./checks/invariants.ts";
+import {
+  checkInvariants,
+  checkNameList,
+  checkRunNames,
+  declaredCheckNames,
+  listedCheckNamesIn,
+  type TextFile,
+} from "./checks/invariants.ts";
 import { emit, passed } from "./checks/report.ts";
 
 const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: repoRoot, encoding: "utf8" })
@@ -34,6 +41,11 @@ const scripts = loadPackageJson() as { scripts?: Record<string, string> };
 
 const report = checkInvariants(files, {
   declaredNames: declaredCheckNames(workflows, Object.keys(scripts.scripts ?? {})),
+  checkRunNames: checkRunNames(workflows),
+  // Absent where the list has been deleted, which leaves the set empty and every
+  // declared name unlisted, rather than leaving the tree with nothing to compare
+  // against and a green run.
+  listedCheckNames: new Set(listedCheckNamesIn(files.find((file) => file.path === checkNameList)).keys()),
 });
 emit(report);
 if (!passed(report)) process.exit(1);

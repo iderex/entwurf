@@ -220,13 +220,25 @@ path rather than passed.
 `check:invariants` refuses a tracked text file that violates one of the string
 facts this tree holds: a credential shape, a path under somebody's home
 directory, a backticked check name no workflow declares and `package.json` does
-not define, and a duration quoted with no 95th percentile beside it in the same
-paragraph. The invariants are a table in `tools/src/checks/invariants.ts`, and
-the run prints every one of them with the failure it prevents and the bound on
-what it reaches, so a green run is a statement about those four shapes rather
-than about the tree. Each has a fixture in `tests/unit/invariants.test.ts` that
-is the near miss rather than an obvious violation, and each fixture is also run
-with its own invariant switched off, where it has to pass.
+not define, a duration quoted with no 95th percentile beside it in the same
+paragraph, a check name that would move on its own, and a check name
+`docs/quality/check-names.md` gives no entry. The invariants are a table in
+`tools/src/checks/invariants.ts`, and the run prints every one of them with the
+failure it prevents and the bound on what it reaches, so a green run is a
+statement about those six shapes rather than about the tree. Each has a fixture
+in `tests/unit/invariants.test.ts` that is the near miss rather than an obvious
+violation, and each fixture is also run with its own invariant switched off,
+where it has to pass.
+
+The last two are about the names in front of the default branch. A ruleset
+requires a check by its literal name, so a name carrying a version, a date or a
+matrix value empties the required set the day it moves, without failing; and a
+check added or renamed without its entry leaves the page a reader is sent to
+saying something else. The drift is refused in both directions, and it survives
+the page being deleted, since a page that is not there gives no entry to
+anything. What neither reaches is the required set itself: reading it takes the
+network and a credential, so the page carries the command with the date it was
+run instead.
 
 `check:assets` refuses a font, an icon or a sample design file that this tree
 carries with no entry in `docs/legal/assets.md`, and it refuses an entry there
@@ -345,18 +357,24 @@ the same string so that a rule naming either one keeps matching.
 `check:headers` under the name `source-headers`, and `check:docs` under the name
 `document-lint`, all on the same convention and for the same reason.
 
-The other `check:` scripts are not among them. Issue #8 is where a check gets a
-stable name and is put in front of the default branch, and until that lands,
-running them is something a person does before pushing.
+The other `check:` scripts are not among them, and running those is something a
+person does before pushing.
 
-No ruleset requires any check today, so a red run blocks nothing on its own. The
-ruleset on the default branch refuses a deletion, a non-fast-forward and a direct
-push, and it carries no `required_status_checks` rule:
+`docs/quality/check-names.md` is the page to read for what has to pass. It gives
+one entry per check run this tree produces, says what each one refuses, and
+separates the ones the default branch requires from the ones it does not, with
+the command that prints the required set beside the list. It is not restated
+here, because the copy a contributor read first would be this one and it would
+be the one that went stale.
 
-    gh api repos/iderex/entwurf/rulesets --jq '.[] | select(.name == "gate") | .id'
-    20487962
+Ten of the fourteen names are required today. Issue #8 is where the four that
+are not are held, because adding one is a change to the repository settings
+rather than to this tree:
+
     gh api repos/iderex/entwurf/rulesets/20487962 --jq '[.rules[].type]'
-    ["deletion","non_fast_forward","pull_request"]
+    ["deletion","non_fast_forward","pull_request","required_status_checks"]
+
+Run 2026-08-09.
 
 ## The terms you contribute under
 
