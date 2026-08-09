@@ -169,6 +169,7 @@ Each one is a script in `package.json`, and running all of them is
     corepack pnpm run check:types
     corepack pnpm run check:locks
     corepack pnpm run check:bom
+    corepack pnpm run check:notices
 
 `check:pins` refuses a toolchain version in `package.json` that has drifted from
 the table in `tools/toolchains.json`. It prints which pins it compared and which
@@ -273,6 +274,37 @@ languages, and the rendering library and its binaries, are reached by none of it
 And a package the lock file restricts to another platform is listed as not read
 rather than refused, because one machine cannot install every platform's binaries;
 the run prints how many of those there were, and so does the document.
+
+`check:notices` refuses a `docs/legal/third-party-notices.md` that this run would
+not produce, and it refuses two states before the page is written at all: a
+dependency whose terms nothing established, and a licence file with nothing in it
+but whitespace, which would put an empty block on the page under a heading saying
+a notice was carried. `corepack pnpm run notices` regenerates it; the refusing
+mode never writes, for the same reason `check:bom` never writes. The page carries
+the licence text each dependency publishes, because almost every one of those
+licences asks that its terms and its copyright line travel with the software, and
+`NOTICE.md` points at it rather than holding it. Its bounds are printed by every
+run. It takes its set from the bill of materials, so it is the same one lock file
+and the same one ecosystem, and upstream's dependency set is outside it in exactly
+the same way. It cannot judge whether a licence requires its text to be reproduced
+at all, or whether the text a package publishes is the text its licence requires;
+what it does is carry what each package publishes, name every package that
+publishes none, and count both. It reads the resolved store, so like `check:bom`
+it runs where an install has happened.
+
+Two departures from the published bytes, and the page states them itself. A
+carriage return is folded out, because git stores the page under one line ending
+and a page carrying both would drift against its own regeneration depending on how
+a clone materialised it. A final newline is added where a package's file ends
+without one, so the closing fence lands on a line of its own. Three of the files
+in the set today end without one.
+
+That every package in the set is named on the page, in every state including the
+two that carry no text, is proved by the suite rather than by a rule. The page is
+generated in full on every run, so a package can only go missing from it by the
+renderer being changed to drop one, and no input to the check can produce that: a
+rule over the generated page would be one nothing could make fire, and it would be
+counted as a refusal that exists.
 
 ## What no machine refuses
 

@@ -29,6 +29,11 @@ export const coverageExclude: { pattern: string; reason: string }[] = [
     reason: "runners, same as above",
   },
   {
+    pattern: "tools/src/dependency-set.ts",
+    reason:
+      "a reader: it parses the lock file and walks the resolved store, and holds no decision. It was carved out of the bill of materials runner, which was already outside this measurement for the same reason, so nothing proved it before and nothing proves it now",
+  },
+  {
     pattern: "tools/src/hardware/probe.ts",
     reason: "it launches a browser, which the headless suite may not do. What it reads is decided in tools/src/hardware/machine.ts, which is measured",
   },
