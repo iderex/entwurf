@@ -21,20 +21,32 @@ const documents: TextFile[] = tracked
   .filter((path) => isFollowedDocument(path))
   .map((path) => ({ path, text: readFileSync(join(repoRoot, path), "utf8") }));
 
-// On Windows an executable installed as a script is `name.cmd`, and a spawn with
-// no shell does not find it under the bare name. The bare name is tried first and
-// the suffixed one only where the machine says the file is not there, so a
-// program that ran and failed is never retried as a different program.
-function run(executable: string, args: readonly string[]): void {
+// On Windows an executable installed as a script is `name.cmd`, which a spawn
+// with no shell cannot start at all: the bare name is not found, and the suffixed
+// one is refused by the runtime, which stopped starting batch files without a
+// shell after a command-line injection in that path. Handing it a shell is what
+// the second analyser refuses and what this route stopped doing, so the honest
+// answer on that platform is that the command was not started, said in the run
+// rather than counted as a pass.
+//
+// Only those two codes and only on that platform. Anything else is a program that
+// started and failed, and reporting one as the other would turn a red check into
+// a line of prose.
+const cannotStart = new Set(["ENOENT", "EINVAL"]);
+
+function start(executable: string, args: readonly string[]): "started" | "could not start" {
   try {
     execFileSync(executable, args, { cwd: repoRoot, stdio: "pipe", encoding: "utf8" });
+    return "started";
   } catch (failure) {
-    if (process.platform !== "win32" || (failure as { code?: string }).code !== "ENOENT") throw failure;
-    execFileSync(`${executable}.cmd`, args, { cwd: repoRoot, stdio: "pipe", encoding: "utf8" });
+    const code = (failure as { code?: string }).code ?? "";
+    if (process.platform === "win32" && cannotStart.has(code)) return "could not start";
+    throw failure;
   }
 }
 
 const failures: { path: string; line: number; command: string; detail: string }[] = [];
+const notStarted: { command: string; reason: string }[] = [];
 for (const block of decide(documents).run) {
   for (const command of block.commands) {
     // Spawned directly with an argument array and no shell, so nothing in a
@@ -45,7 +57,12 @@ for (const block of decide(documents).run) {
     const [executable, ...args] = command.split(/\s+/).filter((word) => word !== "");
     if (executable === undefined) continue;
     try {
-      run(executable, args);
+      if (start(executable, args) === "could not start") {
+        notStarted.push({
+          command,
+          reason: `on Windows a spawn with no shell cannot start ${executable}, which is installed as a script`,
+        });
+      }
     } catch (failure) {
       const status = (failure as { status?: number }).status;
       // Both streams, because a tool that prints its refusal on stdout is as
@@ -64,6 +81,6 @@ for (const block of decide(documents).run) {
   }
 }
 
-const report = checkCommands(documents, failures);
+const report = checkCommands(documents, failures, notStarted);
 emit(report);
 if (!passed(report)) process.exit(1);
