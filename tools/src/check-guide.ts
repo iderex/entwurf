@@ -9,7 +9,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { loadPackageJson, repoRoot } from "./pins.ts";
-import { checkGuide, pathsNamedBy } from "./checks/guide.ts";
+import { checkGuide, ignoredPathsIn, pathsNamedBy } from "./checks/guide.ts";
 import { emit, passed } from "./checks/report.ts";
 
 const guide = readFileSync(join(repoRoot, "CONTRIBUTING.md"), "utf8");
@@ -22,7 +22,7 @@ const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: repoRoot, encodin
 // of .gitignore here that could disagree with it. Exit 0 means at least one path
 // was ignored, 1 means none were, and anything else is a failure to ask.
 const candidates = pathsNamedBy(guide);
-const asked = spawnSync("git", ["check-ignore", "--stdin"], {
+const asked = spawnSync("git", ["check-ignore", "-v", "--stdin"], {
   cwd: repoRoot,
   input: candidates.join("\n"),
   encoding: "utf8",
@@ -31,7 +31,7 @@ if (asked.status !== 0 && asked.status !== 1) {
   console.error(`REFUSED  git could not be asked which paths are ignored (exit ${asked.status}): ${asked.stderr}`);
   process.exit(1);
 }
-const produced = asked.stdout.split("\n").map((line) => line.trim()).filter((line) => line.length > 0);
+const produced = ignoredPathsIn(asked.stdout);
 
 const scripts = loadPackageJson() as { scripts?: Record<string, string> };
 

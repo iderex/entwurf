@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { describe, expect, test } from "vitest";
-import { checkGuide, looksLikeATrackedPath } from "../../tools/src/checks/guide.ts";
+import { checkGuide, ignoredPathsIn, looksLikeATrackedPath } from "../../tools/src/checks/guide.ts";
 import { passed } from "../../tools/src/checks/report.ts";
 
 const tracked = ["CONTRIBUTING.md", "tools/src/pins.ts", "docs/decisions/0001-means.md", "upstream/pin.json"];
@@ -76,5 +76,34 @@ describe("checkGuide", () => {
     const report = checkGuide("", tracked, [], scripts);
     expect(report.lines[1]).toContain("it does NOT judge");
     expect(report.lines[1]).toContain("whether any sentence in the guide is true");
+  });
+});
+
+describe("ignoredPathsIn", () => {
+  // git answers with the rule it matched. A real ignore names one; the case
+  // below names none.
+  const answer = [
+    ".gitignore:6:coverage/\tcoverage/",
+    ".gitignore:7:tests/hardware/results/\ttests/hardware/results/",
+  ].join("\n");
+
+  test("takes the path out of each answer that names a rule", () => {
+    expect(ignoredPathsIn(answer)).toEqual(["coverage/", "tests/hardware/results/"]);
+  });
+
+  // The reason the verbose form is asked for at all. A path written with a
+  // trailing slash that this tree does not carry comes back as ignored, matched
+  // against a blank line rather than against anything anybody wrote, and reading
+  // that as an answer let a document name any directory at all and pass.
+  test("drops an answer whose rule is empty, which is a directory nothing tracks", () => {
+    expect(ignoredPathsIn(".gitignore:2:\tdocs/nonsense/")).toEqual([]);
+  });
+
+  test("reads nothing out of an empty answer, which is what git prints when none are ignored", () => {
+    expect(ignoredPathsIn("")).toEqual([]);
+  });
+
+  test("survives the carriage return a checkout on one platform leaves on the line", () => {
+    expect(ignoredPathsIn(".gitignore:6:coverage/\tcoverage/\r")).toEqual(["coverage/"]);
   });
 });

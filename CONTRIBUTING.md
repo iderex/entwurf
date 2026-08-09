@@ -5,6 +5,7 @@
 From a fresh clone, on a machine that has the pinned Node runtime and nothing
 else installed:
 
+<!-- not run: it writes to the machine it runs on and needs the network; .github/workflows/clean-machine.yml runs it in a container instead -->
     corepack pnpm install --frozen-lockfile
 
 That reaches a working environment. It is one command because a setup described
@@ -18,6 +19,7 @@ all under a Node other than the exact version `package.json` names under
 `engines.node`, because `pnpm-workspace.yaml` sets `engineStrict`. The refusal
 looks like this, and it names the version it wanted:
 
+<!-- not run: it is the refusal an install prints rather than a command -->
     [ERR_PNPM_UNSUPPORTED_ENGINE] Unsupported environment (bad pnpm and/or Node.js version)
     Expected version: 24.18.1
     Got: v24.18.0
@@ -28,6 +30,7 @@ was produced under stop being the versions the tree names.
 
 Then the suite:
 
+<!-- not run: it is the suite, and running it from inside a check would be the suite running itself; .github/workflows/unit-suite.yml and the clean-machine container run it instead -->
     corepack pnpm test
 
 It runs with no display, no GPU and no browser driver, and the hosted runner in
@@ -82,6 +85,7 @@ The floor is lines 95%, functions 95%, branches 90%, statements 95%, and the run
 fails below it. The command that produces the number is the suite command above,
 which prints:
 
+<!-- not run: it is the output of the command above rather than a command -->
     Statements   : 99.47% ( 380/382 )
     Branches     : 98.52% ( 200/203 )
     Functions    : 100% ( 60/60 )
@@ -113,6 +117,7 @@ and runs under `test`.
 The boundary is held by the suite rather than by review: a unit test that imports
 a browser driver is refused when the file is loaded, before any test body runs.
 
+<!-- not run: it is the error the suite prints rather than a command -->
     Error: tests\unit\reaches-a-browser.test.ts imports @playwright/test, which drives a browser.
 
 That refusal reaches every import the bundler resolves, static or dynamic. It
@@ -121,6 +126,7 @@ passes through it.
 
 ## The hardware-bound suite
 
+<!-- not run: it needs a display and a GPU, and the machine every check here runs on has neither -->
     corepack pnpm run test:needs-display-and-gpu
 
 The name says what it needs, and the name is the point. A suite called
@@ -131,6 +137,7 @@ than a red one.
 It reads the machine before it runs anything, and refuses one that cannot do the
 work, naming what was missing:
 
+<!-- not run: it is the output of the command above rather than a command -->
     machine GPU: none
     MISSING  a GPU: the browser is rendering through ANGLE (Google, ... SwiftShader driver-5.0.0)
     MISSING  webgl on the GPU: the browser reports it as unavailable_software
@@ -139,6 +146,7 @@ work, naming what was missing:
 Every run prints the machine it ran on, and says whether it examined the whole
 set or part of it:
 
+<!-- not run: it is the output of the command above rather than a command -->
     examined the WHOLE hardware-bound set: 2 case(s), none skipped, no filter.
     examined PART of the hardware-bound set: 1 of 1 case(s). This run may NOT be read as a full one.
       partial because the command was narrowed by: --grep WebGL2
@@ -159,6 +167,8 @@ GPU, so this suite would be refused there, correctly, on every run.
 Each one is a script in `package.json`, and running all of them is
 `corepack pnpm run check`.
 
+<!-- run -->
+
     corepack pnpm run check:pins
     corepack pnpm run check:languages
     corepack pnpm run check:guide
@@ -166,10 +176,19 @@ Each one is a script in `package.json`, and running all of them is
     corepack pnpm run check:invariants
     corepack pnpm run check:assets
     corepack pnpm run check:headers
+
+Those seven import Node builtins and files in this tree and nothing else, which
+is why `check:commands` runs them from this page on every change. The remaining
+five need something the machine a check runs on does not have, and each says
+which:
+
+<!-- not run: check:types needs the compiler installed, check:locks resolves against the registry, check:bom and check:notices read the installed store, and check:commands is the route running this block -->
+
     corepack pnpm run check:types
     corepack pnpm run check:locks
     corepack pnpm run check:bom
     corepack pnpm run check:notices
+    corepack pnpm run check:commands
 
 `check:pins` refuses a toolchain version in `package.json` that has drifted from
 the table in `tools/toolchains.json`. It prints which pins it compared and which
@@ -216,6 +235,19 @@ The register of planned paths fails closed in both directions. An entry naming a
 path the tree has since acquired is refused as stale, so it cannot outlive the
 absence it describes, and a path nobody wrote down is refused as an unresolved
 path rather than passed.
+
+`check:commands` runs the command blocks on this page that say they can be run,
+and refuses one that says nothing. Every block here carries a marker on the line
+before it, written as an HTML comment so it renders as nothing: either that a
+route runs it, or that a route does not, with the reason. A block with neither is
+refused, which is the part worth having, because a block nobody thought about
+reads exactly like one somebody decided not to run. The route reaches this file
+and anything under the operator guide's directory, which #86 writes and this tree
+does not carry yet, so that guide is judged the same way the day it arrives
+rather than being remembered about then. Its bounds are
+printed by every run and there are two: whether the reason a block gives for not
+being run is true is not judged, and neither is whether the output pasted under a
+command is what that command prints today.
 
 `check:invariants` refuses a tracked text file that violates one of the string
 facts this tree holds: a credential shape, a path under somebody's home
@@ -371,6 +403,7 @@ Ten of the fourteen names are required today. Issue #8 is where the four that
 are not are held, because adding one is a change to the repository settings
 rather than to this tree:
 
+<!-- not run: it needs the network and a credential, and the lines under it are what it printed on the date beside it -->
     gh api repos/iderex/entwurf/rulesets/20487962 --jq '[.rules[].type]'
     ["deletion","non_fast_forward","pull_request","required_status_checks"]
 
@@ -405,6 +438,7 @@ a contributor reads first would be this one.
 
 One command prints the revision this tree builds and measures against:
 
+<!-- run -->
     corepack pnpm run upstream:revision
 
 `upstream/README.md` says which branch it comes from and why, and

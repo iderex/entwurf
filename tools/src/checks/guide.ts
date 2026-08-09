@@ -27,6 +27,28 @@ const backticked = /`([^`\n]+)`/g;
 // `corepack pnpm run <script>`, in an indented command block or inside backticks.
 const scriptUse = /corepack pnpm run ([a-z][a-z0-9:-]*)/g;
 
+// One answer from `git check-ignore -v`: the file the rule came from, the line it
+// sits on, the rule itself, then a tab and the path asked about.
+const ignoreAnswer = /^(.*):([0-9]+):(.*)\t(.*)$/;
+
+// Which of the paths asked about git says this tree ignores, out of the verbose
+// answer rather than the plain one. The verbose form is used for one reason: a
+// path written with a trailing slash that this tree does not carry is answered
+// as ignored with an EMPTY rule, which is git matching it against a blank line
+// in .gitignore rather than against anything anybody wrote. Believing that
+// answer let a document name any directory at all and pass, since a directory
+// nothing tracks is exactly the case the rule is for.
+export function ignoredPathsIn(answer: string): string[] {
+  const ignored: string[] = [];
+  for (const line of answer.split("\n")) {
+    const found = line.trimEnd().match(ignoreAnswer);
+    if (found?.[3] === undefined || found[4] === undefined) continue;
+    if (found[3].trim() === "") continue;
+    ignored.push(found[4].trim());
+  }
+  return ignored;
+}
+
 // A backticked span that looks like a path this tree should carry. Anything else
 // inside backticks is a field name, a setting, a version or a quoted line, and
 // judging those as paths would refuse the guide for saying `engines.node`.

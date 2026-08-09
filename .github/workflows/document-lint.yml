@@ -55,3 +55,15 @@ jobs:
         env:
           COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
         run: corepack pnpm run check:docs
+
+      - name: Run the guide's command blocks that say they can be run
+        # Same job, so this adds no check run name and nothing has to be required
+        # a second time. It belongs here rather than beside the suite: a block of
+        # commands in a document is a claim the document makes, and this is where
+        # a document's claims are judged. The commands it runs are the checks that
+        # import only builtins, which is why no install step is needed for them
+        # either; every block needing more than that is marked in the guide with
+        # what stops it.
+        env:
+          COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+        run: corepack pnpm run check:commands

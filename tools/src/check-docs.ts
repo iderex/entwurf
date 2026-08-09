@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "./pins.ts";
 import { checkDocuments, type TextFile } from "./checks/docs.ts";
-import { looksLikeATrackedPath } from "./checks/guide.ts";
+import { ignoredPathsIn, looksLikeATrackedPath } from "./checks/guide.ts";
 import { emit, passed } from "./checks/report.ts";
 
 const tracked = execFileSync("git", ["ls-files", "-z"], { cwd: repoRoot, encoding: "utf8" })
@@ -42,7 +42,7 @@ for (const document of documents) {
   }
 }
 
-const asked = spawnSync("git", ["check-ignore", "--stdin"], {
+const asked = spawnSync("git", ["check-ignore", "-v", "--stdin"], {
   cwd: repoRoot,
   input: [...candidates].join("\n"),
   encoding: "utf8",
@@ -51,12 +51,7 @@ if (asked.status !== 0 && asked.status !== 1) {
   console.error(`REFUSED  git could not be asked which paths are ignored (exit ${asked.status}): ${asked.stderr}`);
   process.exit(1);
 }
-const producedPaths = new Set(
-  asked.stdout
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0),
-);
+const producedPaths = new Set(ignoredPathsIn(asked.stdout));
 
 const report = checkDocuments(documents, {
   trackedPaths: new Set(tracked),
