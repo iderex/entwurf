@@ -315,6 +315,22 @@ export function renderDocument(input: Input, rows: readonly Row[]): string {
   ].join("\n");
 }
 
+// The drift comparison is over the text and not over the bytes. This repository
+// declares no `.gitattributes`, so a clone with `core.autocrlf` set puts a
+// carriage return on every line of a tracked file that git stores with none, and
+// a byte comparison then reports every line of a document nobody touched as
+// different. That is a refusal about the checkout rather than about the
+// dependencies, and it was measured: the check went red on a fresh checkout of
+// the commit that introduced it, on a machine where that setting is on.
+//
+// What this gives up is stated rather than glossed. An edit that changes only
+// line endings now passes. Nothing reads this document for its bytes, git stores
+// the same object either way, and no reader sees the difference, so the cost is
+// smaller than a check that cannot be green on a whole class of machine.
+function sameText(left: string, right: string): boolean {
+  return left.replaceAll("\r\n", "\n") === right.replaceAll("\r\n", "\n");
+}
+
 export const rules: readonly Rule[] = [
   {
     id: "dependency-without-a-determined-licence",
@@ -351,12 +367,12 @@ export const rules: readonly Rule[] = [
     prevents:
       "the document drifting away from the lock file it claims to be generated from, which is what turns a generated list back into a hand-maintained one without anybody deciding to",
     bound:
-      "a byte comparison against what this run would generate. It says nothing about whether the generated document is the right shape, only that the tracked copy is the one this input produces",
+      "a comparison of the text against what this run would generate, with carriage returns folded out of both sides first. It says nothing about whether the generated document is the right shape, only that the tracked copy carries the text this input produces, and nothing at all about which line ending a working tree holds",
     find(input, _rows, document) {
       if (input.tracked === undefined) {
         return [{ where: input.documentPath, detail: "does not exist, and this run would generate it" }];
       }
-      if (input.tracked === document) return [];
+      if (sameText(input.tracked, document)) return [];
       return [
         {
           where: input.documentPath,
