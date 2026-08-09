@@ -404,3 +404,31 @@ describe("the tree carrying no document at all", () => {
     ]);
   });
 });
+
+// This repository declares no `.gitattributes`, so a clone with `core.autocrlf`
+// set materialises a tracked LF document with a carriage return on every line.
+// A byte comparison called that a hand edit and refused a document nobody had
+// touched, which was measured on a fresh checkout of the commit that introduced
+// the check.
+describe("a working tree that carries the document with carriage returns", () => {
+  const clean = input({ tracked: undefined });
+  const generated = renderDocument(clean, billOfMaterials(clean));
+  const asWindowsCheckedItOut = generated.replaceAll("\n", "\r\n");
+
+  test("passes, because the difference is the checkout and not the dependencies", () => {
+    const { report } = checkBillOfMaterials(input({ tracked: asWindowsCheckedItOut }));
+    expect(report.refusals).toEqual([]);
+  });
+
+  // The leg that matters. Folding the carriage returns must not fold away a real
+  // drift that happens to arrive on a machine where the setting is on, which is
+  // the same machine the fix above was written for.
+  test("still refuses a real edit that arrives with those carriage returns", () => {
+    const edited = asWindowsCheckedItOut.replace("| vitest | 4.1.10 | MIT |", "| vitest | 4.1.11 | MIT |");
+    expect(edited).not.toBe(asWindowsCheckedItOut);
+    const { report } = checkBillOfMaterials(input({ tracked: edited }));
+    expect(report.refusals).toEqual([
+      "bill-of-materials-out-of-date: docs/legal/bill-of-materials.md: differs from what this run generates, so the tracked copy was edited by hand or the lock file moved under it",
+    ]);
+  });
+});
