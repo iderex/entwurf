@@ -2,7 +2,20 @@
 
 Fluid performance on very large design files, granular version history, and the
 conditions a plugin ecosystem needs, built on the open design tool. The design
-files live on your own hardware.
+files live on your own hardware, and the only way they leave it is a path the
+operator configured.
+
+That clause sits here rather than further down the page. A claim that keeps its
+sentence and puts the exception somewhere else is what
+[docs/not-for.md](docs/not-for.md) declines by name, and the sentence carried no
+clause at all until a plugin was permitted to reach a destination an operator
+names. Record [0011](docs/decisions/0011-deliberate-federation.md) sets the five
+conditions any such path has to meet, and record
+[0012](docs/decisions/0012-plugin-network-reach.md) is where that permission is
+argued. No such path is built. There is no application code here yet at all:
+
+    git ls-files -- overlay | wc -l
+    0
 
 Planning happens on the issue tracker first. Every decision that shapes
 the architecture is written down there with its reasons before the code
