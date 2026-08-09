@@ -20,9 +20,13 @@
 import { describe, expect, test } from "vitest";
 import {
   checkInvariants,
+  checkNameList,
+  checkRunNames,
+  checkRunNamesIn,
   declaredCheckNames,
   invariantIds,
   invariants,
+  listedCheckNamesIn,
   notCheckNames,
   type Context,
   type TextFile,
@@ -34,7 +38,13 @@ function assemble(...parts: readonly string[]): string {
 }
 
 const context: Context = {
-  declaredNames: new Set(["unit-suite", "check:locks", "check:pins"]),
+  declaredNames: new Set(["unit-suite", "document-lint", "check:locks", "check:pins"]),
+  checkRunNames: new Set(["unit-suite", "document-lint"]),
+  // The renamed job in the stability fixture below is listed here on purpose, so
+  // that fixture is somebody who did update the page. The rename is then refused
+  // for what the new name carries rather than for the page lagging behind it,
+  // which is the only way to tell the two rules apart.
+  listedCheckNames: new Set(["unit-suite", "document-lint", "unit-suite (node 24.18.1)"]),
 };
 
 // A payload of the length the shape requires. On its own it carries no prefix and
@@ -147,11 +157,61 @@ const rows: readonly Row[] = [
     refusal:
       "no-unpaired-performance-number: docs/performance/page-switch.md:1: quotes 184 ms with no 95th percentile beside it in the same paragraph",
   },
+  {
+    id: "check-name-is-stable",
+    why:
+      "putting the runtime the job runs under into its name, on the day a second runtime is added, which is the one moment the name reads as incomplete without it",
+    nearMiss: {
+      path: ".github/workflows/unit-suite.yml",
+      text: [
+        "name: unit-suite",
+        "jobs:",
+        "  unit-suite:",
+        "    name: unit-suite (node 24.18.1)",
+        "    runs-on: ubuntu-latest",
+      ].join("\n"),
+    },
+    corrected: {
+      path: ".github/workflows/unit-suite.yml",
+      text: [
+        "name: unit-suite",
+        "jobs:",
+        "  unit-suite:",
+        "    name: unit-suite",
+        "    runs-on: ubuntu-latest",
+      ].join("\n"),
+    },
+    refusal:
+      'check-name-is-stable: .github/workflows/unit-suite.yml:4: reports a check run under "unit-suite (node 24.18.1)", which carries a version',
+  },
+  {
+    id: "check-name-is-listed",
+    why:
+      "adding a second job to a workflow that already has one, where the workflow is already listed and the new check run is not the thing being thought about",
+    nearMiss: {
+      path: ".github/workflows/document-lint.yml",
+      text: [
+        "name: document-lint",
+        "jobs:",
+        "  document-lint:",
+        "    runs-on: ubuntu-latest",
+        "  document-lint-proof:",
+        "    runs-on: ubuntu-latest",
+      ].join("\n"),
+    },
+    corrected: {
+      path: ".github/workflows/document-lint.yml",
+      text: ["name: document-lint", "jobs:", "  document-lint:", "    runs-on: ubuntu-latest"].join("\n"),
+    },
+    refusal: `check-name-is-listed: .github/workflows/document-lint.yml:5: reports a check run under "document-lint-proof", which ${checkNameList} gives no entry`,
+  },
 ];
 
 describe("the invariant table", () => {
-  test("carries the four invariants this tree names, and no invariant twice", () => {
+  test("carries the six invariants this tree names, and no invariant twice", () => {
     expect([...invariantIds].sort()).toEqual([
+      "check-name-is-listed",
+      "check-name-is-stable",
       "no-developer-machine-path",
       "no-secret-shaped-value",
       "no-unknown-check-name",
@@ -201,7 +261,16 @@ describe("what the run says about itself", () => {
   test("counts the files, the invariants it ran and the names it judged against", () => {
     const report = checkInvariants(rows.map((row) => row.corrected), context);
     expect(report.lines[0]).toBe(
-      "examined 4 tracked text file(s) against 4 of 4 invariant(s), judged against 3 declared check name(s).",
+      "examined 6 tracked text file(s) against 6 of 6 invariant(s), judged against 4 declared check name(s).",
+    );
+  });
+
+  // The required set is the half of this that no run reads, and a run that did
+  // not say so would be read as having compared against it.
+  test("counts the names the workflows report and the names the list carries, and disclaims the required set", () => {
+    const report = checkInvariants([], context);
+    expect(report.lines[1]).toBe(
+      "the workflows report 2 check run name(s), and the list gives an entry to 3. Which of them the default branch requires is read by no run here.",
     );
   });
 
@@ -218,7 +287,7 @@ describe("what the run says about itself", () => {
   // the whole of it, which is the only reason the disabled set is printed at all.
   test("says nothing about the invariants it did not run", () => {
     const report = checkInvariants([], context, new Set(["no-secret-shaped-value"]));
-    expect(report.lines[0]).toMatch(/against 1 of 4 invariant\(s\)/);
+    expect(report.lines[0]).toMatch(/against 1 of 6 invariant\(s\)/);
     expect(report.lines.at(-1)).toMatch(/^NOT run on this run/);
   });
 
@@ -361,5 +430,150 @@ describe("declaredCheckNames", () => {
   test("an unread indentation declares fewer names rather than more", () => {
     const odd: TextFile = { path: ".github/workflows/odd.yml", text: "jobs:\n    deep-job:\n      runs-on: x\n" };
     expect([...declaredCheckNames([odd], [])]).toEqual([]);
+  });
+});
+
+describe("the names a workflow reports a check run under", () => {
+  const workflow: TextFile = {
+    path: ".github/workflows/example.yml",
+    text: [
+      "name: example-suite",
+      "on:",
+      "  pull_request:",
+      "jobs:",
+      "  named-job:",
+      "    name: the name it reports under",
+      "    runs-on: ubuntu-latest",
+      "  unnamed-job:",
+      "    runs-on: ubuntu-latest",
+      "    steps:",
+      "      - name: a step, which reports nothing of its own",
+      "        run: true",
+    ].join("\n"),
+  };
+
+  test("takes a job's own name where it has one and its id where it has none", () => {
+    expect(checkRunNamesIn(workflow).map((found) => found.name)).toEqual([
+      "the name it reports under",
+      "unnamed-job",
+    ]);
+  });
+
+  // A step's name is not a check run name. Reading one would list names the
+  // server never reports, and the page would then be refused for carrying them.
+  test("reads a name four spaces in and leaves a step's name alone", () => {
+    expect(checkRunNames([workflow]).has("a step, which reports nothing of its own")).toBe(false);
+  });
+
+  test("points at the line the name is declared on, so a refusal lands on it", () => {
+    expect(checkRunNamesIn(workflow)).toEqual([
+      { name: "the name it reports under", line: 6 },
+      { name: "unnamed-job", line: 8 },
+    ]);
+  });
+
+  // The workflow name sits above the jobs and produces no check run of its own.
+  test("does not report the workflow's own name", () => {
+    expect(checkRunNames([workflow]).has("example-suite")).toBe(false);
+  });
+});
+
+describe("the entries the list carries", () => {
+  const list: TextFile = {
+    path: checkNameList,
+    text: [
+      "# The check names",
+      "",
+      "The suite is `unit-suite`, and this sentence is a mention rather than an entry.",
+      "",
+      "### `unit-suite`",
+      "",
+      "Refuses a failing test.",
+      "",
+      "## `not-an-entry`",
+    ].join("\n"),
+  };
+
+  test("reads a level-three heading carrying one backticked span, and nothing else on the page", () => {
+    expect([...listedCheckNamesIn(list)]).toEqual([["unit-suite", 5]]);
+  });
+
+  test("a page that is not there lists nothing, which refuses every name rather than none", () => {
+    expect([...listedCheckNamesIn(undefined)]).toEqual([]);
+
+    const workflow: TextFile = {
+      path: ".github/workflows/unit-suite.yml",
+      text: ["jobs:", "  unit-suite:", "    runs-on: ubuntu-latest"].join("\n"),
+    };
+    const report = checkInvariants([workflow], { ...context, listedCheckNames: new Set() });
+    expect(report.refusals).toEqual([
+      `check-name-is-listed: .github/workflows/unit-suite.yml:2: reports a check run under "unit-suite", which ${checkNameList} gives no entry`,
+    ]);
+  });
+
+  // The other direction. An entry left behind by a rename sends a reader looking
+  // for a check run nothing produces, and it reads exactly like a current one.
+  test("refuses an entry no job declares", () => {
+    const stale: TextFile = {
+      path: checkNameList,
+      text: ["### `unit-suite`", "", "### `document-lints`"].join("\n"),
+    };
+    // Two refusals rather than one, for two different reasons: the entry names a
+    // check that does not exist, which is what the older invariant is about, and
+    // it is an entry on this page in particular, which is what this one is about.
+    // A page that lost one of the two would still be refused by the other, and
+    // the reader would be told less about why.
+    const report = checkInvariants([stale], context);
+    expect(report.refusals).toEqual([
+      "no-unknown-check-name: docs/quality/check-names.md:3: names `document-lints`, which no workflow declares and package.json does not define",
+      `check-name-is-listed: ${checkNameList}:3: lists "document-lints", which no job in a tracked workflow reports a check run under`,
+    ]);
+  });
+
+  test("passes a page whose entries are the names the workflows report", () => {
+    const current: TextFile = {
+      path: checkNameList,
+      text: ["### `unit-suite`", "", "### `document-lint`"].join("\n"),
+    };
+    expect(passed(checkInvariants([current], context))).toBe(true);
+  });
+});
+
+describe("what the check name rules decline to judge", () => {
+  // The three shapes are what a name carries from outside itself. A name with a
+  // digit in it that is not a version does not move on its own, and refusing one
+  // would be a rule about spelling rather than about stability.
+  test("a digit that is not a version, a date or an expression is not unstable", () => {
+    const workflow: TextFile = {
+      path: ".github/workflows/example.yml",
+      text: ["jobs:", "  second-analyser:", "    name: second-analyser", "    runs-on: x"].join("\n"),
+    };
+    const report = checkInvariants([workflow], {
+      ...context,
+      listedCheckNames: new Set(["second-analyser"]),
+    });
+    expect(passed(report)).toBe(true);
+  });
+
+  test("a matrix value in the name is refused before any matrix exists to fill it", () => {
+    const workflow: TextFile = {
+      path: ".github/workflows/example.yml",
+      text: ["jobs:", "  unit-suite:", "    name: unit-suite (${{ matrix.node }})", "    runs-on: x"].join("\n"),
+    };
+    const report = checkInvariants([workflow], {
+      ...context,
+      listedCheckNames: new Set(["unit-suite (${{ matrix.node }})"]),
+    });
+    expect(report.refusals).toEqual([
+      'check-name-is-stable: .github/workflows/example.yml:3: reports a check run under "unit-suite (${{ matrix.node }})", which carries an expression the runner substitutes',
+    ]);
+  });
+
+  // The list is a page in this tree and the required set is a repository setting.
+  // Nothing here reads the second, and a rule that appeared to would be worse
+  // than the absence, because the page would look guarded in the half it is not.
+  test("says nothing about a name the list carries and the default branch does not require", () => {
+    const current: TextFile = { path: checkNameList, text: "### `document-lint`" };
+    expect(passed(checkInvariants([current], context))).toBe(true);
   });
 });
