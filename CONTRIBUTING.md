@@ -167,6 +167,7 @@ Each one is a script in `package.json`, and running all of them is
     corepack pnpm run check:headers
     corepack pnpm run check:types
     corepack pnpm run check:locks
+    corepack pnpm run check:bom
 
 `check:pins` refuses a toolchain version in `package.json` that has drifted from
 the table in `tools/toolchains.json`. It prints which pins it compared and which
@@ -230,6 +231,20 @@ bytes back and prints the command that repairs it. It never repairs the file
 itself, because a check that quietly fixed the drift would hide the thing it
 exists to report. It needs the network, and a resolve that cannot be run is
 refused as a failure to judge rather than passed as a clean tree.
+
+`check:bom` refuses a dependency that `pnpm-lock.yaml` names and whose licence
+nothing could determine, and it refuses a `docs/legal/bill-of-materials.md` that
+this run would not produce, so the document cannot drift back into being
+maintained by hand. `corepack pnpm run bom` regenerates it; the refusing mode
+never writes, for the same reason `check:locks` never repairs. Its bounds are
+printed by every run and there are three. It reads what a package declares about
+itself in its own manifest, and no reading of a manifest can say whether that
+declaration is the licence the package's files actually carry. Its set is the one
+lock file this tree tracks, so upstream's own dependency set in three other
+languages, and the rendering library and its binaries, are reached by none of it.
+And a package the lock file restricts to another platform is listed as not read
+rather than refused, because one machine cannot install every platform's binaries;
+the run prints how many of those there were, and so does the document.
 
 ## What no machine refuses
 
