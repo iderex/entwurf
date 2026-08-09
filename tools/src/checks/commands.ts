@@ -46,6 +46,14 @@ export const repair =
 const runMarker = /^<!--\s*run\s*-->$/;
 const notRunMarker = /^<!--\s*not run:\s*(.*?)\s*-->$/;
 
+// Syntax a shell would act on. The runner spawns the executable with an argument
+// array and no shell, so nothing a document writes is parsed as shell syntax on
+// the way to the program. A command needing any of this is therefore one the
+// route cannot run, and it is refused as marked wrongly rather than run with the
+// syntax handed to the program as a literal argument, which fails later and for a
+// reason that reads as the command being broken.
+const shellSyntax = /[|&;<>$`(){}*?~]|\|\||>>/;
+
 // The documents this reaches. The guide is the one a contributor follows; an
 // operator guide is written under docs/operator/ and is judged the same way the
 // day it arrives, rather than being remembered about then.
@@ -120,6 +128,15 @@ export function decide(files: readonly TextFile[]): Decision {
     for (const block of blocksIn(file)) {
       const at = { path: file.path, line: block.line, commands: block.commands };
       if (block.marker !== undefined && runMarker.test(block.marker)) {
+        const withSyntax = block.commands.filter((command) => shellSyntax.test(command));
+        if (withSyntax.length > 0) {
+          refusals.push(
+            `${file.path}:${block.line}: is marked as run and carries shell syntax, which the route does not give a shell to interpret: ${withSyntax
+              .map((command) => JSON.stringify(command))
+              .join(", ")}`,
+          );
+          continue;
+        }
         run.push(at);
         continue;
       }

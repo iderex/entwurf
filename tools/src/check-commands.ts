@@ -21,16 +21,31 @@ const documents: TextFile[] = tracked
   .filter((path) => isFollowedDocument(path))
   .map((path) => ({ path, text: readFileSync(join(repoRoot, path), "utf8") }));
 
+// On Windows an executable installed as a script is `name.cmd`, and a spawn with
+// no shell does not find it under the bare name. The bare name is tried first and
+// the suffixed one only where the machine says the file is not there, so a
+// program that ran and failed is never retried as a different program.
+function run(executable: string, args: readonly string[]): void {
+  try {
+    execFileSync(executable, args, { cwd: repoRoot, stdio: "pipe", encoding: "utf8" });
+  } catch (failure) {
+    if (process.platform !== "win32" || (failure as { code?: string }).code !== "ENOENT") throw failure;
+    execFileSync(`${executable}.cmd`, args, { cwd: repoRoot, stdio: "pipe", encoding: "utf8" });
+  }
+}
+
 const failures: { path: string; line: number; command: string; detail: string }[] = [];
 for (const block of decide(documents).run) {
   for (const command of block.commands) {
-    // The command is run as the document writes it, through a shell, because that
-    // is what the reader following the document does. What may be marked as run
-    // is decided in the document and reviewed there; a block that needs a
-    // credential, a network fetch or a write to the machine is marked as not run
-    // with that as its reason.
+    // Spawned directly with an argument array and no shell, so nothing in a
+    // document is parsed as shell syntax on the way to the program. That is why
+    // the decision refuses a runnable block carrying shell syntax rather than
+    // running it: a command needing a pipe or a redirect is one this route cannot
+    // run, and saying so is the honest answer.
+    const [executable, ...args] = command.split(/\s+/).filter((word) => word !== "");
+    if (executable === undefined) continue;
     try {
-      execFileSync(command, { cwd: repoRoot, shell: true, stdio: "pipe", encoding: "utf8" });
+      run(executable, args);
     } catch (failure) {
       const status = (failure as { status?: number }).status;
       // Both streams, because a tool that prints its refusal on stdout is as

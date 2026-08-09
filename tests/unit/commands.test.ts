@@ -81,6 +81,22 @@ describe("a block marked as not run", () => {
   });
 });
 
+describe("a block marked as run that the route cannot run", () => {
+  // The mistake is marking a transcript as runnable because its first line is a
+  // command, when the line carries a pipe into another program.
+  test("is refused when a command carries shell syntax, naming the command", () => {
+    const document = guide("<!-- run -->", "", "    git ls-files | wc -l", "");
+    expect(checkCommands([document]).refusals).toEqual([
+      'CONTRIBUTING.md:3: is marked as run and carries shell syntax, which the route does not give a shell to interpret: "git ls-files | wc -l"',
+    ]);
+  });
+
+  test("passes when the same block is written as a command the route can spawn", () => {
+    const corrected = guide("<!-- run -->", "", "    git ls-files", "");
+    expect(passed(checkCommands([corrected]))).toBe(true);
+  });
+});
+
 describe("what a block is", () => {
   test("an indented block and a fenced block are both read", () => {
     const document = guide("<!-- run -->", "", "    one", "", "<!-- run -->", "", "```", "two", "```", "");
