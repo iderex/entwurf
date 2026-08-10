@@ -6,12 +6,21 @@ you spend an evening.
 
 ## What you are being offered
 
-**A contract, not an interface.** The plugin surface here is treated as something
-you can build against and come back to. Record
-[0009](../decisions/0009-plugin-contract.md) sets out what may change in which
-kind of release and what may never change, names the conformance suite as the
-authority for what the contract actually says, and states the one thing this
-project cannot promise rather than leaving you to find it.
+**A contract, not an interface.** Here is the promise, in one paragraph. Code you
+write against a released version of this contract keeps working on every later
+release of the same major version, with no change from you. What an operation
+means, the types it takes and returns, whether it can throw, what a permission
+grants and when an event fires are fixed for the life of that major version; if
+one of them has to change, a new operation appears beside the old one instead. A
+minor release only adds. Nothing is removed without twelve months' notice, and the
+replacement is named in the release that announces the removal. What is not
+covered is written down as plainly as what is, and so is the one thing this
+project cannot promise you, which is anything about a package it does not publish.
+
+[compatibility.md](compatibility.md) is that promise in full, with the deprecation
+policy and a worked example of a deprecation from announcement to removal. Record
+[0009](../decisions/0009-plugin-contract.md) is where the position was argued and
+what it costs this project.
 
 **A superset of the upstream surface.** A plugin written against the upstream
 plugin package runs here. A plugin using something this project adds does not run
