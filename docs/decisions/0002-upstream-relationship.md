@@ -129,6 +129,27 @@ other direction, from here into upstream. It does not govern the direction
 described in this paragraph, because that direction is settled by the upstream
 project.
 
+## What no machine refuses today
+
+Nothing in this tree enforces any of the above, and one fact explains all of it:
+there is nothing yet for a rule to be about.
+
+    git ls-files overlay/ | wc -l
+    0
+
+The three-question test is applied by a person before a change is written, and no
+reading of the tree separates a change that was put through it from one that was
+not. The limit of 30 changed files and 1500 changed lines has nothing to measure,
+and the command that would measure it arrives with the replay in issue #10. The
+hard-fork condition turns on two consecutive upstream releases and on what came
+back from an offer, neither of which is a fact this tree holds.
+
+One thing here is refused rather than trusted, and it is the smallest of them.
+`overlay/` is declared in the register of paths this tree intends to carry and
+does not carry yet, which `check:docs` fails closed in both directions: a
+document may name the directory before it exists, and the entry may not outlive
+the absence it describes.
+
 ## What this record does not decide
 
 It does not decide this repository's licence, which is issue #64 and is blocked

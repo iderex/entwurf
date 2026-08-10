@@ -145,6 +145,23 @@ quote its median without seeing the mark. The distinction matters: invalid means
 the run says nothing, noisy means the run says something imprecise, and collapsing
 the two loses the second.
 
+## What a machine refuses here, and what it does not
+
+One rule above is refused and the rest are positions. The split is stated here
+because this record is quoted for the protocol, and a protocol a reader believes
+is enforced is worse than one they know is not.
+
+The rule that a median never travels alone is refused by `check:invariants`,
+which reads a duration written as a number followed by ms in tracked Markdown and
+judges it against the paragraph it sits in. Its bounds are printed by every run:
+a number written as a word, a byte count, and a number in an issue or a commit
+message are all outside it, which leaves most of the places this rule is about.
+
+Everything else here needs a harness that does not exist. The metric definitions,
+the repetition counts, the discard rule and the invalidity conditions are read by
+a person until issue #15 builds the thing that produces a result file and issue
+#16 makes a missing condition field a refusal rather than a gap.
+
 ## What is deliberately not measured
 
 **Frames per second as a single number.** It is the reciprocal of a mean, and it

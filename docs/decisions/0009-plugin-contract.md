@@ -210,6 +210,26 @@ own distribution presents to a plugin. An author who wants the promise gets it b
 targeting this project's contract version, which is why that version exists as a
 number separate from the upstream package's.
 
+## What no machine refuses today
+
+The section above says a rule is a thing that refuses, and by that measure this
+record states none. Nothing here publishes a contract, runs a conformance case or
+compares two versions of a surface:
+
+    git ls-files 'tools/conformance/*' 'examples/*' | wc -l
+    0
+
+So "the suite is the definition" describes an intention, and the compatibility
+promise, the deprecation cycle and the superset relationship are all positions.
+The three things that would give them teeth already have their issues: #41 for
+the suite that is the authority, #47 for the check that refuses a silent breaking
+change, and #46 for the reference plugin the suite runs.
+
+One part is refused already, and it is worth being exact about how little that
+covers. The page an author reads is a tracked document, so `check:docs` judges
+its paths, its links and the form of any record it cites. Nothing there bears on
+whether the promise written on it is kept.
+
 ## What this record does not decide
 
 It does not decide the wording of the published compatibility promise or the

@@ -192,6 +192,22 @@ overlay ends up holding measurement scaffolding and tuning rather than rendering
 logic. If it ends up holding rendering logic instead, that is record 0002's limit
 doing its job and the signal is the limit being approached, not this paragraph.
 
+## What no machine refuses today
+
+Every rule above is a position. This tree carries no engine, no overlay and no
+run that has measured either:
+
+    git ls-files overlay/ | wc -l
+    0
+
+The classification in the section above is record 0002's test applied by a
+person, and where a change lands is decided before it is written rather than read
+off anything afterwards. The conditions that would make this path the wrong one
+are read off measurements nobody has taken: issues #23 and #24 take them, and
+this record is amended once with what they find. An amendment is a person writing
+a sentence, not a route noticing that a number crossed a line, and issue #19 is
+where a number crossing a line becomes a refusal.
+
 ## What this record does not decide
 
 It does not decide where inside the path the work goes. Issues #23 and #24 decide
