@@ -139,6 +139,19 @@ reach on the network with the default off. Neither is decided here. What is
 decided here is that whatever they land on has to satisfy the five clauses, and a
 permission model that cannot express them has not met this record.
 
+## What no machine refuses today
+
+The five clauses are a test applied to a feature, and there is no feature here to
+apply them to. Nothing in this tree federates, discloses or holds an operator
+setting, so every clause is a position and the test is one a person runs.
+
+The record already says what the exception would look like: a never-category
+arrives with the mechanism that refuses the violation and an amendment here
+naming it. The same holds for the clauses. The earliest thing that could carry
+one is the check in the fifth condition of issue #42, which reads the contract
+source rather than a running plugin, and it waits on a contract source this tree
+does not have.
+
 ## What this record does not decide
 
 It does not decide whether any federating feature is ever built, which is held on

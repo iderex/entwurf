@@ -224,6 +224,23 @@ change when the change exists, and a decline upstream moves that change to the
 overlay with what came back recorded, which is the ordinary case rather than a
 failure.
 
+## What no machine refuses today
+
+Nothing in this tree records a history entry, restores one or compares two, so
+every rule above is a position and none of it is refused. That covers the unit a
+user can recover, the vocabulary a difference has to be presented in, and the
+list of things history does not promise, which is the one most likely to be read
+as a guarantee because it is written as a limit.
+
+What would carry them is named rather than left to be found. Issue #38 asks for
+the snapshot policy, the recording path, the retention logic, the comparison and
+the restore to be covered with no display and no GPU, including the paths where
+they fail. Issue #34 holds the comparison that refuses a field the document model
+gained without being added to it, which is the one rule here whose absence is
+silent rather than visible: a comparison that skips a field reports equal.
+
+Both need the store, which is issue #32.
+
 ## What this record does not decide
 
 It does not decide the storage format, the snapshot interval or the compaction

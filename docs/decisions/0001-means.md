@@ -324,3 +324,33 @@ Amending a record in place is the normal case and is what several records alread
 promise to do when a measurement contradicts them. An amendment leaves the
 original statement visible and says what moved it. A new record is written instead
 of an amendment when the decision itself is replaced rather than corrected.
+
+## What a machine refuses here, and what it does not
+
+Two of the rules above are refused by something that runs. The rest are
+positions, and the difference is stated here so that a reader does not stop
+looking for the failure an unenforced rule would have caught.
+
+The naming and numbering convention in the section above is refused by
+`check:docs`: the file name, the first heading, the two lines under it, and a
+second record claiming a number another record already has.
+
+The rule under layer 4, that the logic deciding a verdict is covered by the suite
+running with no display and no GPU while what needs a browser goes to the
+hardware-bound harness, is refused by `tests/unit/architecture-rules.test.ts`. It
+reads the imports of every module under `tools/src/checks/` and of every test in
+the unit suite, and refuses one that arrives at a browser driver through however
+many modules. The refusal the Vitest config installs holds the first step of the
+same rule and stops there, because it reads the importer: a test naming a driver
+is refused and a test naming a module that names one is not. Two bounds come with
+it. It reads import text rather than parsing it, so it can only count an edge
+that is not there and never miss one that is written down; and a module pulled in
+at run time through `node:module` passes both, which is the blind spot the
+Vitest refusal already carries.
+
+Nothing refuses the choice of means itself. Whether a later artefact asked the
+four questions again rather than inheriting the answer from here is a judgement
+about a pull request body, and no reading of the tree makes it. The versions this
+record names are refused as pins by `check:pins`, against this tree and never
+against upstream, so a version that moved upstream is caught by somebody
+re-running the command beside it rather than by a run.
